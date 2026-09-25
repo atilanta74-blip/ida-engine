@@ -1,6 +1,5 @@
 import io
 import json
-import time
 import docx
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -12,7 +11,7 @@ import streamlit as st
 
 # --- OLDALBEÁLLÍTÁSOK ---
 st.set_page_config(
-    page_title="B-ME TPM AI // IDA Engine",
+    page_title="BSHM / B-ME // IDA",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -50,6 +49,7 @@ st.markdown(
         letter-spacing: 3px;
         font-weight: 600;
         margin-top: 4px;
+        text-transform: uppercase;
     }
     .kpi-card {
         background: rgba(30, 41, 59, 0.6);
@@ -120,8 +120,8 @@ with st.sidebar:
 st.markdown(
     """
 <div class="header-box">
-    <div class="header-title">⚡ BSHM / B-ME // TPM KAIZEN AI CORE</div>
-    <div class="header-sub">DYNAMIC USAGE GAP ASSESSMENT & 5-WHY REASONING ENGINE</div>
+    <div class="header-title">⚡ BSHM / B-ME // IDA</div>
+    <div class="header-sub">POWERED BY NAGY ATTILA</div>
 </div>
 """,
     unsafe_allow_html=True,
@@ -184,7 +184,7 @@ with c_right:
   )
 
 
-# --- INTELLIGENS, CSAK INGYENES FLASH MODELLEKET HASZNÁLÓ MOTOR ---
+# --- INTELLIGENS, FLASH MODELLEKET HASZNÁLÓ MOTOR ---
 def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
   genai.configure(api_key=api_key)
 
@@ -196,7 +196,7 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
   except Exception:
     pass
 
-  # KIZÁRJUK a "pro" modelleket! Ingyenes fióknál azok limitje 0 (429 hiba)!
+  # KIZÁRJUK a "pro" modelleket, hogy ne fusson 429 kvótahibára
   flash_list = [
       m for m in elerheto if "flash" in m.lower() and "pro" not in m.lower()
   ]
@@ -249,7 +249,7 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
           "miert2": "2. Miért kérdés és válasz",
           "miert3": "3. Miért kérdés és válasz",
           "miert4": "4. Miért kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A fizikai/mechanikai ok (pl. aszimmetrikus feszültség a -2mm eltérés miatt)"
+          "miert5_gyokerok": "GYÖKÉROK: A fizikai/mechanikai ok"
         }},
         {{
           "ag_nev": "2. ÁG: KARBANTARTÁSI / MEGELŐZÉSI ÁG",
@@ -267,10 +267,10 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
           "miert2": "2. Miért kérdés és válasz",
           "miert3": "3. Miért kérdés és válasz",
           "miert4": "4. Miért kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A horizontális ellenőrzési standard korábbi hiánya"
+          "miert5_gyokerok": "GYÖKÉROK: A horizontális ellenőrzési standard hiánya"
         }}
       ],
-      "vegleges_akcioterv": "Részletes összefoglaló a hibáról, az elvégzett központosításról és a horizontális check bevezetéséről felelőssel és határidővel."
+      "vegleges_akcioterv": "Részletes összefoglaló a hibáról, az elvégzett beavatkozásról és a horizontális check bevezetéséről felelőssel és határidővel."
     }}
     Minden mező legyen közvetlenül az adott jegyzetre szabva, szakmai magyar nyelven!
     """
