@@ -105,10 +105,10 @@ with st.sidebar:
         "Google Gemini API Kulcs:",
         type="password",
         value=st.secrets.get("GEMINI_API_KEY", ""),
-        help="Ingyenes API kulcs az aistudio.google.com oldalról"
+        help="Illeszd be az AI Studio kulcsodat"
     )
     st.markdown("---")
-    st.markdown("💡 **Tipp:** Ha a Streamlit Cloud *Settings -> Secrets* menüjében megadod a `GEMINI_API_KEY`-t, akkor nem kell ide beírnod semmit.")
+    st.markdown("💡 **Tipp:** Ha a Streamlit Secrets-be beírtad a `GEMINI_API_KEY`-t, üresen maradhat.")
 
 # --- FEJLÉC ÉS KPI STATUS BAR ---
 st.markdown("""
@@ -135,7 +135,7 @@ c_left, c_right = st.columns([1, 1.4])
 with c_left:
     st.markdown("### 📋 Alapadatok")
     gep_nev = st.text_input("Berendezés / Gép megnevezése", value="RF62")
-    hiba_rovid = st.text_input("Hiba megnevezése", value="RF62 gumibecsípődés")
+    hiba_rovid = st.text_input("Hiba megnevezése", value="Rimtető megfogó mh szártörés")
     datum_val = st.text_input("Dátum", value="2026.09.25.")
     felelos_val = st.text_input("Karbantartási Felelős", value="Nagy Attila")
 
@@ -144,80 +144,125 @@ with c_right:
     jegyzet_szoveg = st.text_area(
         "Másold be az eseményt / műszakos jegyzetet:",
         height=188,
-        value="RF62 gépen gumibecsípődés történt a továbbító pályánál. A gumi megakadt a görgőknél, leállt a sor. A megakadt gumit eltávolítottuk, a vezetősínt beállítottuk és megtisztítottuk."
+        value="2023.06.07.-én a rf62 gép szétszerelő állomáson a rimtető megfogó mh egyik szára eltörött. A szakos karbantartás cserélte a mh-t. Ezután ellenőriztem a központosságot és a mérés kimutatta, hogy a 3 irány egyikénél -2mm eltérés van. Ez az eltérés eredményezhette, hogy a több ezer nyitás-zárás alatt a szár meggyengült és eltörött. Be lett állítva a központosság, majd horizontal check lesz alkalmazva minden hasonló gépen."
     )
 
-# --- VALÓDI AI ELEMZÉS GEMINI MODELLEL ---
+# --- ROBUSTUS MODELLKERESŐ ÉS ELEMZŐ MOTOR ---
 def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel("gemini-1.5-flash")
+
+    # 1. Lekérdezzük a fiókhoz tartozó elérhető modelleket, hogy biztosan ne legyen 404
+    elerheto_modellek = []
+    try:
+        for m in genai.list_models():
+            if 'generateContent' in m.supported_generation_methods:
+                elerheto_modellek.append(m.name)
+    except Exception:
+        pass
+
+    # Preferált modellek sorrendje
+    preferalt = [
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro",
+        "gemini-pro"
+    ]
+    
+    valasztott = None
+    for p in preferalt:
+        for m in elerheto_modellek:
+            if p in m:
+                valasztott = m
+                break
+        if valasztott:
+            break
+            
+    if not valasztott:
+        valasztott = elerheto_modellek[0] if elerheto_modellek else "gemini-1.5-flash"
+
+    model = genai.GenerativeModel(valasztott)
 
     prompt = f"""
-    Te egy vezető mechatronikai és TPM karbantartó mérnök vagy a Bridgestone gyárban.
-    Feladatod: Az alábbi műszakos jegyzet alapján készíts szigorú szakmai mélyanalízist a gyári IDA formátumhoz.
+    Te egy tapasztalt mechatronikai TPM karbantartó mérnök vagy a Bridgestone gyárban.
+    Elemezd az alábbi konkrét műszakos jegyzetet a gyári BSHM B-ME IDA szabvány szerint:
 
-    Gép: {gep}
-    Hiba megnevezése: {hiba}
+    Berendezés: {gep}
+    Hiba: {hiba}
     Dátum: {datum}
-    Karbantartó felelős: {felelos}
+    Felelős: {felelos}
     Műszakos jegyzet:
     \"\"\"{jegyzet}\"\"\"
 
-    Válaszolj KIZÁRÓLAG egy érvényes JSON struktúrában az alábbi séma szerint:
+    KIZÁRÓLAG érvényes JSON formátumban válaszolj, a következő szerkezetben:
     {{
       "kriteriumok": [
         {{
           "nev": "Tisztaság",
-          "kerdes": "(A részegység elég tiszta, hogy ellenőrizhető legyen?)",
+          "kerdes": "(A részegység (berendezés) elég tiszta, hogy ellenőrizhető legyen és az állapota ne romoljon rohamosan?)",
           "idealis": "1. ...",
           "aktualis": "1. ...",
-          "hianyossag": "1. ... (ha nincs, '1. Nincs hiányosság.')",
-          "gyokerok": "1. ... (ha nincs, '1. Nem releváns.')",
-          "ellenintezkedes": "1. ... (ha nincs, '1. Standard CIL tisztítás fenntartása.')"
+          "hianyossag": "1. ... (ha nincs: 1. Nincs hiányosság.)",
+          "gyokerok": "1. ... (ha nincs: 1. Nem releváns.)",
+          "ellenintezkedes": "1. ... (ha nincs: 1. Standard CIL tisztítás fenntartása.)"
         }},
-        ... (mind a 13 kritérium sorrendben: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet, Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás, Tervezés, Javítás)
+        ... (mind a 13 kritérium pontosan: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet, Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás, Tervezés, Javítás)
       ],
       "ot_miert_agak": [
         {{
-          "ag_nev": "1. ÁG: MŰSZAKI / MECHANIKAI ÁG",
-          "problema": "Rövid leírás az adott ág szemszögéből",
-          "miert1": "Kérdés és válasz",
-          "miert2": "Kérdés és válasz",
-          "miert3": "Kérdés és válasz",
-          "miert4": "Kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A műszaki kiváltó ok kifejtése"
+          "ag_nev": "1. ÁG: MŰSZAKI / FIZIKAI ÁG",
+          "problema": "Probléma leírás a fizikai/mechanikai hiba szempontjából",
+          "miert1": "1. Miért kérdés és válasz",
+          "miert2": "2. Miért kérdés és válasz",
+          "miert3": "3. Miért kérdés és válasz",
+          "miert4": "4. Miért kérdés és válasz",
+          "miert5_gyokerok": "GYÖKÉROK: A mechanikai/fizikai gyökérok pontos meghatározása"
         }},
         {{
           "ag_nev": "2. ÁG: KARBANTARTÁSI / MEGELŐZÉSI ÁG",
-          "problema": "Rövid leírás a karbantartás szemszögéből",
-          "miert1": "Kérdés és válasz",
-          "miert2": "Kérdés és válasz",
-          "miert3": "Kérdés és válasz",
-          "miert4": "Kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A karbantartási/ellenőrzési hiányosság kifejtése"
+          "problema": "Probléma leírás a megelőzés és ellenőrzés szempontjából",
+          "miert1": "1. Miért kérdés és válasz",
+          "miert2": "2. Miért kérdés és válasz",
+          "miert3": "3. Miért kérdés és válasz",
+          "miert4": "4. Miért kérdés és válasz",
+          "miert5_gyokerok": "GYÖKÉROK: A karbantartási ellenőrzési standard hiányossága"
         }},
         {{
-          "ag_nev": "3. ÁG: MŰVELETI / BEÁLLÍTÁSI / ALKATRÉSZ ÁG",
-          "problema": "Rövid leírás",
-          "miert1": "Kérdés és válasz",
-          "miert2": "Kérdés és válasz",
-          "miert3": "Kérdés és válasz",
-          "miert4": "Kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A beállítási vagy alkatrész gyökérok"
+          "ag_nev": "3. ÁG: BEÁLLÍTÁSI / SZERELÉSI / HORIZONTÁLIS ÁG",
+          "problema": "Probléma leírás a beállítás/beépítés szempontjából",
+          "miert1": "1. Miért kérdés és válasz",
+          "miert2": "2. Miért kérdés és válasz",
+          "miert3": "3. Miért kérdés és válasz",
+          "miert4": "4. Miért kérdés és válasz",
+          "miert5_gyokerok": "GYÖKÉROK: A beállítási ellenőrzés és horizontális kiterjesztés gyökéroka"
         }}
       ],
-      "vegleges_akcioterv": "Összefoglaló a jegyzetről, azonnali beavatkozásról és a 2-3 végleges megelőző akcióról felelőssel és határidővel."
+      "vegleges_akcioterv": "Részletes összefoglaló a hibáról, az azonnali javításról és a végleges intézkedésekről felelőssel és határidővel."
     }}
-    Minden válasz legyen szakmai, közvetlenül a megadott jegyzet tényeire épüljön, magyar nyelven!
+    Minden mező legyen közvetlenül az adott gépre és hibára szabva, szakmai magyar nyelven!
     """
 
-    res = model.generate_content(
-        prompt,
-        generation_config={"response_mime_type": "application/json"}
-    )
-    return json.loads(res.text)
+    try:
+        res = model.generate_content(prompt, generation_config={"response_mime_type": "application/json"})
+        text_resp = res.text.strip()
+    except Exception:
+        res = model.generate_content(prompt)
+        text_resp = res.text.strip()
 
-# --- DOKUMENTUM GENERÁLÓ MOTOR ---
+    # JSON tisztítás
+    if text_resp.startswith("```"):
+        lines = text_resp.splitlines()
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].startswith("```"):
+            lines = lines[:-1]
+        text_resp = "\n".join(lines).strip()
+        if text_resp.startswith("json"):
+            text_resp = text_resp[4:].strip()
+
+    return json.loads(text_resp)
+
+# --- DOKUMENTUM GENERÁLÓ MOTOR (100% GYÁRI FORMÁTUM, CSAK JANÓCZKI M!) ---
 def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data):
     doc = docx.Document()
     for section in doc.sections:
@@ -283,15 +328,14 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data):
             if p.runs:
                 p.runs[0].font.name = 'Calibri'; p.runs[0].font.size = Pt(7.5); p.runs[0].font.bold = True
 
-    # AI által generált 13 sor beillesztése
     for r_idx, krit in enumerate(ai_data["kriteriumok"], start=2):
         col_vals = [
             f"{krit['nev']}\n{krit.get('kerdes', '')}",
-            krit.get("idealis", "1. Standard állapot."),
-            krit.get("aktualis", "1. Megfelelő."),
+            krit.get("idealis", "1. Standard előírások betartása."),
+            krit.get("aktualis", "1. Megfelelő üzemállapot."),
             krit.get("hianyossag", "1. Nincs hiányosság."),
             krit.get("gyokerok", "1. Nem releváns."),
-            krit.get("ellenintezkedes", "1. Standard fenntartása.")
+            krit.get("ellenintezkedes", "1. Standard állapot fenntartása.")
         ]
         for c_i, val in enumerate(col_vals):
             cell = p1_table.cell(r_idx, c_i)
@@ -363,7 +407,7 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data):
         for c_i in range(5):
             row.cells[c_i].width = col_w
 
-    # Jegyzetek és végleges akcióterv doboz alul
+    # Jegyzetek és akcióterv
     doc.add_paragraph().paragraph_format.space_before = Pt(4)
     p_n = doc.add_paragraph()
     p_n.add_run("JEGYZETEK / AKCIÓTERV:").bold = True
@@ -372,10 +416,10 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data):
     n_cell = n_box.cell(0, 0)
     n_cell.width = Inches(10.7)
     set_cell_bg(n_cell, "FFFFFF"); set_cell_pad(n_cell, 50, 50, 60, 60); set_cell_border(n_cell, "6")
-    n_cell.text = ai_data.get("vegleges_akcioterv", jegyzet_szoveg)
+    n_cell.text = ai_data.get("vegleges_akcioterv", jegyzet)
     n_cell.paragraphs[0].runs[0].font.name = 'Calibri'; n_cell.paragraphs[0].runs[0].font.size = Pt(8.5)
 
-    # Lábléc: PONTOSAN CSAK Janóczki M!
+    # Lábléc: CSAK Janóczki M!
     for section in doc.sections:
         footer = section.footer
         foot_table = footer.add_table(rows=2, cols=6, width=Inches(10.7))
@@ -399,18 +443,18 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data):
     output.seek(0)
     return output
 
-# --- GOMB ÉS GENERÁLÁS ---
+# --- GOMB ÉS FOLYAMAT ---
 if st.button("⚡ INTELLIGENS ELEMZÉS & DOKUMENTUM GENERÁLÁSA"):
     api_key = api_key_input.strip()
     if not api_key:
-        st.error("⚠️ Kérlek, add meg a Google Gemini API kulcsot a bal oldali sávban az elemzés futtatásához!")
+        st.error("⚠️ Kérlek, add meg a Google Gemini API kulcsot a bal oldali sávban!")
     else:
-        with st.spinner("🧠 A mesterséges intelligencia elemzi a hibát és felépíti az 5-Miért fát..."):
+        with st.spinner("🧠 A mesterséges intelligencia elemzi a jegyzetet és felépíti az 5-Miért ágakat..."):
             try:
                 ai_eredmeny = elemez_geminivel(api_key, gep_nev, hiba_rovid, datum_val, felelos_val, jegyzet_szoveg)
                 docx_file = general_hivatalos_docx(gep_nev, hiba_rovid, datum_val, felelos_val, ai_eredmeny)
                 
-                st.success("✅ Az elemzés sikeresen elkészült az új hibajelenség alapján!")
+                st.success("✅ Az új hibajelenség mélyanalízise és a dokumentum sikeresen elkészült!")
                 st.download_button(
                     label="📥 HIVATALOS WORD DOKUMENTUM LETÖLTÉSE (.DOCX)",
                     data=docx_file,
