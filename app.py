@@ -197,7 +197,6 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
     pass
 
   # KIZÁRJUK a "pro" modelleket! Ingyenes fióknál azok limitje 0 (429 hiba)!
-  # Csak az ingyenes FLASH modelleket engedélyezzük:
   flash_list = [
       m for m in elerheto if "flash" in m.lower() and "pro" not in m.lower()
   ]
@@ -217,48 +216,64 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
     if m not in kiprobalando:
       kiprobalando.append(m)
 
-  prompt = (
-      "Te egy tapasztalt mechatronikai TPM karbantartó mérnök vagy a"
-      " Bridgestone gyárban.\nElemezd az alábbi konkrét műszakos jegyzetet a"
-      f" gyári BSHM B-ME IDA szabvány szerint:\n\nBerendezés: {gep}\nHiba:"
-      f" {hiba}\nDátum: {datum}\nFelelős: {felelos}\nMűszakos"
-      f' jegyzet:\n"""\n{jegyzet}\n"""\n\nKIZÁRÓLAG érvényes JSON formátumban'
-      ' válaszolj, az alábbi séma szerint:\n{\n  "kriteriumok": [\n    {\n   '
-      '   "nev": "Tisztaság",\n      "kerdes": "(A részegység (berendezés)'
-      " elég tiszta, hogy ellenőrizhető legyen és az állapota ne romoljon"
-      ' rohamosan?)",\n      "idealis": "1. ...",\n      "aktualis": "1.'
-      ' ...",\n      "hianyossag": "1. ... (ha nincs: 1. Nincs'
-      ' hiányosság.)",\n      "gyokerok": "1. ... (ha nincs: 1. Nem'
-      ' releváns.)",\n      "ellenintezkedes": "1. ... (ha nincs: 1. Standard'
-      " CIL tisztítás fenntartása.)\"\n    },\n    ... (mind a 13 kritérium"
-      " sorrendben: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet,"
-      " Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás,"
-      ' Tervezés, Javítás)\n  ],\n  "ot_miert_agak": [\n    {\n      "ag_nev":'
-      ' "1. ÁG: MŰSZAKI / FIZIKAI ÁG",\n      "problema": "Probléma leírás a'
-      ' mechanikai törés / feszültség szempontjából",\n      "miert1": "1.'
-      ' Miért kérdés és válasz",\n      "miert2": "2. Miért kérdés és'
-      ' válasz",\n      "miert3": "3. Miért kérdés és válasz",\n     '
-      ' "miert4": "4. Miért kérdés és válasz",\n      "miert5_gyokerok":'
-      ' "GYÖKÉROK: A fizikai/mechanikai ok (pl. aszimmetrikus feszültség a -2mm'
-      ' eltérés miatt)"\n    },\n    {\n      "ag_nev": "2. ÁG: KARBANTARTÁSI'
-      ' / MEGELŐZÉSI ÁG",\n      "problema": "Probléma leírás a beállítási és'
-      ' megelőzési ellenőrzés szempontjából",\n      "miert1": "1. Miért'
-      ' kérdés és válasz",\n      "miert2": "2. Miért kérdés és válasz",\n   '
-      '   "miert3": "3. Miért kérdés és válasz",\n      "miert4": "4. Miért'
-      ' kérdés és válasz",\n      "miert5_gyokerok": "GYÖKÉROK: A geometriai /'
-      ' központossági ellenőrzési ciklus hiánya"\n    },\n    {\n     '
-      ' "ag_nev": "3. ÁG: HORIZONTÁLIS KITERJESZTÉSI ÁG",\n      "problema":'
-      " \"Probléma leírás a hasonló gépekre történő kiterjesztés"
-      ' szempontjából",\n      "miert1": "1. Miért kérdés és válasz",\n     '
-      ' "miert2": "2. Miért kérdés és válasz",\n      "miert3": "3. Miért'
-      ' kérdés és válasz",\n      "miert4": "4. Miért kérdés és válasz",\n   '
-      '   "miert5_gyokerok": "GYÖKÉROK: A horizontális ellenőrzési standard'
-      ' korábbi hiánya"\n    }\n  ],\n  "vegleges_akcioterv": "Részletes'
-      " összefoglaló a hibáról, az elvégzett központosításról és a"
-      " horizontális check bevezetéséről felelőssel és"
-      ' határidővel."\n}\nMinden mező legyen közvetlenül az adott jegyzetre'
-      " szabva, szakmai magyar nyelven!"
-  )
+  prompt = f"""
+    Te egy tapasztalt mechatronikai TPM karbantartó mérnök vagy a Bridgestone gyárban.
+    Elemezd az alábbi konkrét műszakos jegyzetet a gyári BSHM B-ME IDA szabvány szerint:
+
+    Berendezés: {gep}
+    Hiba: {hiba}
+    Dátum: {datum}
+    Felelős: {felelos}
+    Műszakos jegyzet:
+    {jegyzet}
+
+    KIZÁRÓLAG érvényes JSON formátumban válaszolj, az alábbi séma szerint:
+    {{
+      "kriteriumok": [
+        {{
+          "nev": "Tisztaság",
+          "kerdes": "(A részegység (berendezés) elég tiszta, hogy ellenőrizhető legyen és az állapota ne romoljon rohamosan?)",
+          "idealis": "1. ...",
+          "aktualis": "1. ...",
+          "hianyossag": "1. ... (ha nincs: 1. Nincs hiányosság.)",
+          "gyokerok": "1. ... (ha nincs: 1. Nem releváns.)",
+          "ellenintezkedes": "1. ... (ha nincs: 1. Standard CIL tisztítás fenntartása.)"
+        }},
+        ... (mind a 13 kritérium sorrendben: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet, Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás, Tervezés, Javítás)
+      ],
+      "ot_miert_agak": [
+        {{
+          "ag_nev": "1. ÁG: MŰSZAKI / FIZIKAI ÁG",
+          "problema": "Probléma leírás a mechanikai törés / feszültség szempontjából",
+          "miert1": "1. Miért kérdés és válasz",
+          "miert2": "2. Miért kérdés és válasz",
+          "miert3": "3. Miért kérdés és válasz",
+          "miert4": "4. Miért kérdés és válasz",
+          "miert5_gyokerok": "GYÖKÉROK: A fizikai/mechanikai ok (pl. aszimmetrikus feszültség a -2mm eltérés miatt)"
+        }},
+        {{
+          "ag_nev": "2. ÁG: KARBANTARTÁSI / MEGELŐZÉSI ÁG",
+          "problema": "Probléma leírás a beállítási és megelőzési ellenőrzés szempontjából",
+          "miert1": "1. Miért kérdés és válasz",
+          "miert2": "2. Miért kérdés és válasz",
+          "miert3": "3. Miért kérdés és válasz",
+          "miert4": "4. Miért kérdés és válasz",
+          "miert5_gyokerok": "GYÖKÉROK: A geometriai / központossági ellenőrzési ciklus hiánya"
+        }},
+        {{
+          "ag_nev": "3. ÁG: HORIZONTÁLIS KITERJESZTÉSI ÁG",
+          "problema": "Probléma leírás a hasonló gépekre történő kiterjesztés szempontjából",
+          "miert1": "1. Miért kérdés és válasz",
+          "miert2": "2. Miért kérdés és válasz",
+          "miert3": "3. Miért kérdés és válasz",
+          "miert4": "4. Miért kérdés és válasz",
+          "miert5_gyokerok": "GYÖKÉROK: A horizontális ellenőrzési standard korábbi hiánya"
+        }}
+      ],
+      "vegleges_akcioterv": "Részletes összefoglaló a hibáról, az elvégzett központosításról és a horizontális check bevezetéséről felelőssel és határidővel."
+    }}
+    Minden mező legyen közvetlenül az adott jegyzetre szabva, szakmai magyar nyelven!
+    """
 
   utolso_hiba = None
   for mod_nev in kiprobalando:
@@ -292,7 +307,7 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
 
 
 # --- DOKUMENTUM GENERÁLÓ MOTOR (100% GYÁRI FORMÁTUM, CSAK JANÓCZKI M!) ---
-def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data):
+def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
   doc = docx.Document()
   for section in doc.sections:
     section.orientation = docx.enum.section.WD_ORIENT.LANDSCAPE
@@ -387,9 +402,12 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data):
         p.runs[0].font.size = Pt(7.5)
         p.runs[0].font.bold = True
 
-  for r_idx, krit in enumerate(ai_data["kriteriumok"], start=2):
+  kriteriumok = ai_data.get("kriteriumok", [])
+  for r_idx, krit in enumerate(kriteriumok, start=2):
+    if r_idx >= 15:
+      break
     col_vals = [
-        f"{krit['nev']}\n{krit.get('kerdes', '')}",
+        f"{krit.get('nev', '')}\n{krit.get('kerdes', '')}",
         krit.get("idealis", "1. Standard állapot."),
         krit.get("aktualis", "1. Megfelelő."),
         krit.get("hianyossag", "1. Nincs hiányosság."),
@@ -435,14 +453,19 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data):
   p2_table.alignment = WD_TABLE_ALIGNMENT.CENTER
   col_w = Inches(10.7 / 5)
 
-  agak = ai_data["ot_miert_agak"]
-  p_defs = [agak[i]["problema"] if i < len(agak) else "" for i in range(5)]
+  agak = ai_data.get("ot_miert_agak", [])
+  p_defs = [
+      agak[i].get("problema", "") if i < len(agak) else "" for i in range(5)
+  ]
   whys = [
-      [agak[i]["miert1"] if i < len(agak) else "" for i in range(5)],
-      [agak[i]["miert2"] if i < len(agak) else "" for i in range(5)],
-      [agak[i]["miert3"] if i < len(agak) else "" for i in range(5)],
-      [agak[i]["miert4"] if i < len(agak) else "" for i in range(5)],
-      [agak[i]["miert5_gyokerok"] if i < len(agak) else "" for i in range(5)],
+      [agak[i].get("miert1", "") if i < len(agak) else "" for i in range(5)],
+      [agak[i].get("miert2", "") if i < len(agak) else "" for i in range(5)],
+      [agak[i].get("miert3", "") if i < len(agak) else "" for i in range(5)],
+      [agak[i].get("miert4", "") if i < len(agak) else "" for i in range(5)],
+      [
+          agak[i].get("miert5_gyokerok", "") if i < len(agak) else ""
+          for i in range(5)
+      ],
   ]
 
   for c_i in range(5):
@@ -502,7 +525,7 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data):
   set_cell_bg(n_cell, "FFFFFF")
   set_cell_pad(n_cell, 50, 50, 60, 60)
   set_cell_border(n_cell, "6")
-  n_cell.text = ai_data.get("vegleges_akcioterv", jegyzet)
+  n_cell.text = ai_data.get("vegleges_akcioterv") or jegyzet
   n_cell.paragraphs[0].runs[0].font.name = "Calibri"
   n_cell.paragraphs[0].runs[0].font.size = Pt(8.5)
 
@@ -578,7 +601,12 @@ if st.button("⚡ INTELLIGENS ELEMZÉS & DOKUMENTUM GENERÁLÁSA"):
             api_key, gep_nev, hiba_rovid, datum_val, felelos_val, jegyzet_szoveg
         )
         docx_file = general_hivatalos_docx(
-            gep_nev, hiba_rovid, datum_val, felelos_val, ai_eredmeny
+            gep_nev,
+            hiba_rovid,
+            datum_val,
+            felelos_val,
+            ai_eredmeny,
+            jegyzet_szoveg,
         )
 
         st.success(
