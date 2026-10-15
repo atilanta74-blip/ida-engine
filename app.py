@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- CSICSA & HIGH-TECH STÍLUS ---
+# --- CSICSA & HIGH-TECH STÍLUS (JAVÍTOTT, JÓL LÁTHATÓ GOMBOKKAL) ---
 st.markdown(
     """
 <style>
@@ -74,42 +74,54 @@ st.markdown(
         border-color: #38bdf8 !important;
         box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;
     }
-    .stButton>button {
-        width: 100%;
-        color: #ffffff !important;
-        font-size: 15px !important;
-        font-weight: 700 !important;
-        letter-spacing: 1px !important;
-        text-transform: uppercase !important;
+
+    /* GOMBOK ÁLTALÁNOS FORMÁZÁSA ÉS FEHÉR SZÖVEG BIZTOSÍTÁSA */
+    .stButton button, .stDownloadButton button {
+        width: 100% !important;
         border: none !important;
         border-radius: 8px !important;
         padding: 12px 20px !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.5px !important;
+        text-transform: uppercase !important;
         transition: all 0.3s ease !important;
     }
-    .btn-szaki>button {
-        background: linear-gradient(90deg, #ea580c 0%, #c2410c 100%) !important;
-        box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4) !important;
-    }
-    .btn-szaki>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(234, 88, 12, 0.6) !important;
-    }
-    .btn-std>button {
-        background: linear-gradient(90deg, #0284c7 0%, #2563eb 100%) !important;
-        box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4) !important;
-    }
-    .btn-std>button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.6) !important;
-    }
-    .stDownloadButton>button {
-        width: 100%;
-        background: linear-gradient(90deg, #059669 0%, #10b981 100%) !important;
-        color: white !important;
+    .stButton button *, .stDownloadButton button * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
         font-weight: 700 !important;
-        border-radius: 8px !important;
-        letter-spacing: 1px;
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important;
+    }
+
+    /* 1. SZAKI / ZERO-BULLSHIT GOMB: ERŐS NARANCSSÁRGA HÁTTÉR, ÉLES FEHÉR SZÖVEG */
+    .st-key-btn_szaki button {
+        background: linear-gradient(90deg, #ea580c 0%, #c2410c 100%) !important;
+        border: 1px solid #f97316 !important;
+        box-shadow: 0 4px 15px rgba(234, 88, 12, 0.5) !important;
+    }
+    .st-key-btn_szaki button:hover {
+        background: linear-gradient(90deg, #f97316 0%, #ea580c 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(234, 88, 12, 0.7) !important;
+    }
+
+    /* 2. MÉRNÖKI ELEMZÉS GOMB: KOBALTKÉK HÁTTÉR, ÉLES FEHÉR SZÖVEG */
+    .st-key-btn_std button {
+        background: linear-gradient(90deg, #0284c7 0%, #2563eb 100%) !important;
+        border: 1px solid #38bdf8 !important;
+        box-shadow: 0 4px 15px rgba(2, 132, 199, 0.5) !important;
+    }
+    .st-key-btn_std button:hover {
+        background: linear-gradient(90deg, #0ea5e9 0%, #1d4ed8 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.7) !important;
+    }
+
+    /* LETÖLTÉS GOMB */
+    .stDownloadButton button {
+        background: linear-gradient(90deg, #059669 0%, #10b981 100%) !important;
+        border: 1px solid #34d399 !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5) !important;
     }
 </style>
 """,
@@ -419,8 +431,8 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
       "IDEÁLIS ÁLLAPOT",
       "AKTUÁLIS ÁLLAPOT",
       "HIÁNYOSSÁG",
-      "Hiányosság gyökéroka\\n(ismert, vagy “5 miért” elemzés alapján)",
-      "Ellenintézkedés\\n(határidő, felelős, standardizálás)",
+      "Hiányosság gyökéroka\n(ismert, vagy “5 miért” elemzés alapján)",
+      "Ellenintézkedés\n(határidő, felelős, standardizálás)",
   ]
   for c_i, h in enumerate(sub_heads):
     p1_table.cell(1, c_i).text = h
@@ -442,7 +454,7 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
     if r_idx >= 15:
       break
     col_vals = [
-        f"{krit.get('nev', '')}\\n{krit.get('kerdes', '')}",
+        f"{krit.get('nev', '')}\n{krit.get('kerdes', '')}",
         krit.get("idealis", "1. Standard állapot."),
         krit.get("aktualis", "1. Megfelelő."),
         krit.get("hianyossag", "1. Nincs hiányosság."),
@@ -619,7 +631,7 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
   return output
 
 
-# --- KÉT GOMB: ZERO-BULLSHIT (SZAKI) ÉS STANDARD ---
+# --- KÉT JÓL LÁTHATÓ, SZÍNES GOMB EGYEDI KEY-VEL ---
 st.markdown("---")
 c_btn1, c_btn2 = st.columns(2)
 
@@ -627,21 +639,23 @@ indit_szaki = False
 indit_std = False
 
 with c_btn1:
-  st.markdown('<div class="btn-szaki">', unsafe_allow_html=True)
-  if st.button("🛠️ GYÁRI SZAKI ELEMZÉS (ZERO-BULLSHIT / NEM AI ÍZŰ)"):
+  if st.button(
+      "🛠️ GYÁRI SZAKI ELEMZÉS (ZERO-BULLSHIT / NEM AI ÍZŰ)",
+      key="btn_szaki",
+      use_container_width=True,
+  ):
     indit_szaki = True
-  st.markdown("</div>", unsafe_allow_html=True)
   st.caption(
       "⚡ Tömör, katonás, életszerű gépész megfogalmazás: csak a tények, nulla"
       " tankönyvi rizsa."
   )
 
 with c_btn2:
-  st.markdown('<div class="btn-std">', unsafe_allow_html=True)
-  if st.button("⚡ RÉSZLETES MÉRNÖKI ELEMZÉS"):
+  if st.button(
+      "⚡ RÉSZLETES MÉRNÖKI ELEMZÉS", key="btn_std", use_container_width=True
+  ):
     indit_std = True
-  st.markdown("</div>", unsafe_allow_html=True)
-  st.caption("📘 Részletesebb, bővebb szakmai magyarázatok.")
+  st.caption("📘 Részletesebb szakmai magyarázatok.")
 
 if indit_szaki or indit_std:
   api_key = api_key_input.strip()
