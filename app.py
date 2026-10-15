@@ -891,3 +891,4 @@ if indit_szaki or indit_std:
         )
       except Exception as e:
         st.error(f"Hiba történt az elemzés során: {e}")
+          
