@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- CSICSA & HIGH-TECH STÍLUS ---
+# --- CSICSA & HIGH-TECH STÍLUS (ÉLES, KONTRASZTOS, FEHÉR MEZŐFELIRATOKKAL) ---
 st.markdown(
     """
 <style>
@@ -61,6 +61,162 @@ st.markdown(
     .kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
     .kpi-value { font-size: 17px; font-weight: 700; color: #38bdf8; margin-top: 3px; }
 
+    /* BEVITELI MEZŐK BELSŐ SZÖVEGE */
+    .stTextArea textarea, .stTextInput input {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+        border: 1px solid #0284c7 !important;
+        border-radius: 8px !important;
+    }
+    .stTextArea textarea:focus, .stTextInput input:focus {
+        border-color: #38bdf8 !important;
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;
+    }
+
+    /* MINDEN BEVITELI MEZŐ FELETTI CÍMKE / FELIRAT KÉNYSZERÍTETT VILÁGÍTÓ FEHÉRRE */
+    label, label p, label span, div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] label, div[data-testid="stWidgetLabel"] span {
+        color: #f8fafc !important;
+        -webkit-text-fill-color: #f8fafc !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.5px !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+
+    /* GOMBOK ALATTI MAGYARÁZÓ SZÖVEG */
+    div[data-testid="stCaptionContainer"] p, .stCaption p {
+        color: #94a3b8 !important;
+        -webkit-text-fill-color: #94a3b8 !important;
+        font-size: 12px !important;
+    }
+
+    /* GOMBOK ÁLTALÁNOS FORMÁZÁSA ÉS FEHÉR SZÖVEG BIZTOSÍTÁSA */
+    .stButton button, .stDownloadButton button {
+        width: 100% !important;
+        border: none !important;
+        border-radius: 8px !important;
+        padding: 12px 20px !important;
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.5px !important;
+        text-transform: uppercase !important;
+        transition: all 0.3s ease !important;
+    }
+    .stButton button *, .stDownloadButton button * {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-weight: 700 !important;
+    }
+
+    /* 1. SZAKI GOMB: ÉLÉNK NARANCSSÁRGA HÁTTÉR */
+    .st-key-btn_szaki button {
+        background: linear-gradient(90deg, #ea580c 0%, #c2410c 100%) !important;
+        border: 1px solid #f97316 !important;
+        box-shadow: 0 4px 15px rgba(234, 88, 12, 0.5) !important;
+    }
+    .st-key-btn_szaki button:hover {
+        background: linear-gradient(90deg, #f97316 0%, #ea580c 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(234, 88, 12, 0.7) !important;
+    }
+
+    /* 2. MÉRNÖKI GOMB: KOBALTKÉK HÁTTÉR */
+    .st-key-btn_std button {
+        background: linear-gradient(90deg, #0284c7 0%, #2563eb 100%) !important;
+        border: 1px solid #38bdf8 !important;
+        box-shadow: 0 4px 15px rgba(2, 132, 199, 0.5) !important;
+    }
+    .st-key-btn_std button:hover {
+        background: linearA képen jól látszik, hogy a Streamlit alapértelmezett beállítása szinte teljesen feketére és halványra vette a beviteli mezők feletti címkéket (`Berendezés / Gép megnevezése`, `1. Mi volt a hiba?...`), így azok szinte beleolvadnak a sötétkék háttérbe[cite: 24].
+
+A CSS-ben a `div[data-testid="stWidgetLabel"] p` szelektorral közvetlenül felülírjuk ezt a stílust: **erős, éles tiszta fehér színt (`#ffffff`), 15 px méretet, félkövér (bold) betűket és 100%-os átlátszatlanságot** kapnak.
+
+---
+
+### A teljes, javított `app.py` kód (másold be a meglévő helyére a GitHubon):
+
+```python
+import io
+import json
+import docx
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml import parse_xml
+from docx.oxml.ns import nsdecls
+from docx.shared import Inches, Pt, RGBColor
+import google.generativeai as genai
+import streamlit as st
+
+# --- OLDALBEÁLLÍTÁSOK ---
+st.set_page_config(
+    page_title="BSHM / B-ME // IDA",
+    page_icon="⚡",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+# --- CSICSA & HIGH-TECH STÍLUS (ÉLES, JÓL LÁTHATÓ FEHÉR CÍMKÉKKEL) ---
+st.markdown(
+    """
+<style>
+    .stApp {
+        background: linear-gradient(135deg, #0b0f19 0%, #111827 50%, #070a12 100%);
+        color: #e2e8f0;
+        font-family: 'Segoe UI', Roboto, sans-serif;
+    }
+    .header-box {
+        background: rgba(17, 24, 39, 0.85);
+        border: 1px solid #1e293b;
+        border-left: 5px solid #0284c7;
+        padding: 20px 25px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(2, 132, 199, 0.2);
+        margin-bottom: 25px;
+    }
+    .header-title {
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        color: #f8fafc;
+        margin: 0;
+        text-transform: uppercase;
+    }
+    .header-sub {
+        font-size: 13px;
+        color: #38bdf8;
+        letter-spacing: 3px;
+        font-weight: 600;
+        margin-top: 4px;
+        text-transform: uppercase;
+    }
+    .kpi-card {
+        background: rgba(30, 41, 59, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        padding: 14px 18px;
+        border-radius: 10px;
+        backdrop-filter: blur(10px);
+    }
+    .kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
+    .kpi-value { font-size: 17px; font-weight: 700; color: #38bdf8; margin-top: 3px; }
+
+    /* ABLAKOK FELETTI CÍMKÉK / FELIRATOK JAVÍTÁSA: ÉLES HÓFEHÉR, BOLD, 15PX */
+    div[data-testid="stWidgetLabel"] p, 
+    div[data-testid="stWidgetLabel"] label, 
+    label p, 
+    label {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        letter-spacing: 0.5px !important;
+        opacity: 1 !important;
+        margin-bottom: 6px !important;
+    }
+
+    /* BEMENETI MEZŐK BELSŐ TARTALMA */
     .stTextArea textarea, .stTextInput input {
         background-color: #0f172a !important;
         color: #ffffff !important;
@@ -122,6 +278,12 @@ st.markdown(
         background: linear-gradient(90deg, #059669 0%, #10b981 100%) !important;
         border: 1px solid #34d399 !important;
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5) !important;
+    }
+
+    /* CÍMKÉK ALATTI MAGYARÁZÓ SZÖVEGEK */
+    .stCaption p, .stCaption {
+        color: #94a3b8 !important;
+        -webkit-text-fill-color: #94a3b8 !important;
     }
 </style>
 """,
@@ -187,11 +349,9 @@ st.markdown("<br>", unsafe_allow_html=True)
 c_left, c_right = st.columns([1, 1.4])
 with c_left:
   st.markdown("### 📋 Alapadatok")
-  gep_nev = st.text_input("Berendezés / Gép megnevezése", value="RF62")
-  hiba_rovid = st.text_input(
-      "Hiba megnevezése", value="Rimtető megfogó mh szártörés"
-  )
-  datum_val = st.text_input("Dátum", value="2026.09.25.")
+  gep_nev = st.text_input("Berendezés / Gép megnevezése", value="12k pit")
+  hiba_rovid = st.text_input("Hiba megnevezése", value="12k pit hiba")
+  datum_val = st.text_input("Dátum", value="2026.10.14.")
   felelos_val = st.text_input("Karbantartási Felelős", value="Nagy Attila")
 
 with c_right:
@@ -200,11 +360,8 @@ with c_right:
       "1. Mi volt a hiba? (Műszakos jegyzet / tényleges hiba):",
       height=110,
       value=(
-          "2023.06.07.-én a rf62 gép szétszerelő állomáson a rimtető megfogó"
-          " mh egyik szára eltörött. A szakos karbantartás cserélte a mh-t."
-          " Ezután ellenőriztem a központosságot és a mérés kimutatta, hogy a 3"
-          " irány egyikénél -2mm eltérés van. Ez az eltérés eredményezhette,"
-          " hogy a több ezer nyitás-zárás alatt a szár meggyengült és eltörött."
+          "(PIT1 becsatlakozó cv-n heveder csere megtörtént és a cv közelebb"
+          " lett állítva a lehordó cv-hez.)"
       ),
   )
   fejlesztesi_cel = st.text_area(
@@ -214,14 +371,14 @@ with c_right:
       ),
       height=90,
       value=(
-          "Be lett állítva a központosság, majd horizontal check lesz"
-          " alkalmazva minden hasonló gépen, valamint a beállítási ellenőrzés"
-          " felvétele a standard PM munkalapra."
+          "a régi Segment gateway controllok lecserélése multicontroll-ra a"
+          " gyorsabb hibakeresés miatt és hogy van hozzá még csere alkatrész a"
+          " régiekkel ellentétben"
       ),
   )
 
 
-# --- INTELLIGENS, CSAK INGYENES FLASH MODELLEKET HASZNÁLÓ MOTOR ---
+# --- INTELLIGENS FLASH MOTOR ---
 def elemez_geminivel(
     api_key, gep, hiba, datum, felelos, jegyzet, fejlesztes, zero_bullshit=True
 ):
@@ -261,7 +418,7 @@ def elemez_geminivel(
         - TILOSAK az ilyen szavak: 'holisztikus', 'szinergia', 'proaktív paradigma', 'optimalizáció', 'folyamatos fejlődési kultúra', 'humán tényező'.
         - Úgy fogalmazz, mintha egy szűkszavú, kőkemény gyári gépésztechnikus és karbantartás-vezető írta volna a jegyzőkönyvet:
           * Rövid, lényegretörő, pontos gépészeti tőmondatok.
-          * Pontos műszaki adatok a jegyzetből (pl. -2mm eltérés, szártörés, csere, beállítás, stb.).
+          * Pontos műszaki adatok a jegyzetből (heveder kopás/csere, CV távolságállítás, elavult Segment gateway, alkatrészhiány, multicontroll modernizálás).
           * Az 1. oldalon a nem releváns pontok legyenek rövidek: '1. Nincs hiányosság.', '1. Nem releváns.', '1. Standard állapot fenntartása.'
           * A 2. oldalon az 5 Miért kérdések és válaszok legyenek egyenesek, lényegretörők.
           * A végeredmény 100%-ban úgy nézzen ki, mintha kézzel gépelt gyári jegyzőkönyv lenne, nulla AI jelleggel!
@@ -289,7 +446,7 @@ def elemez_geminivel(
     KÜLÖNLEGES LEVEZETÉSI KÖVETELMÉNYEK:
     1. A logikai levezetést (a releváns kritériumok gyökérokait, az 5 Miért 3 ágát és az intézkedéseket) úgy építsd fel, hogy logikusan és szervesen ebből a hibából pontosan a megadott fejlesztési cél ({fejlesztes}) jöjjön ki végeredményként!
     2. FELELŐS ÉS HATÁRIDŐ SZABÁLY AZ ELLENINTÉZKEDÉS OSZLOPBAN:
-       Az 1. oldal 'Ellenintézkedés' oszlopában az intézkedés szövege után külön sorban MINDIG szerepeljen a 'Felelős: ' és 'Határidő: ' szöveg, DE NE TÖLTSD KI konkrét névvel vagy dátummal (pl. 'Felelős: ..........', 'Határidő: ..........'), mert ezt a karbantartás vezetője utólag határozza meg!
+       Az 1. oldal 'Ellenintézkedés' oszlopában az intézkedés szövege után külön sorban MINDIG szerepeljen a 'Felelős: ' és 'Határidő: ' szöveg, DE NE TÖLTSD KI konkrét névvel vagy dátummal (pl. 'Felelős: ..........\\nHatáridő: ..........'), mert ezt a karbantartás vezetője utólag határozza meg!
 
     {stilus_utasitas}
 
@@ -310,7 +467,7 @@ def elemez_geminivel(
       "ot_miert_agak": [
         {{
           "ag_nev": "1. ÁG: MŰSZAKI / FIZIKAI ÁG",
-          "problema": "Probléma leírás a mechanikai hiba/feszültség szempontjából",
+          "problema": "Probléma leírás a mechanikai / hajtás / heveder szempontból",
           "miert1": "1. Miért kérdés és válasz",
           "miert2": "2. Miért kérdés és válasz",
           "miert3": "3. Miért kérdés és válasz",
@@ -318,22 +475,22 @@ def elemez_geminivel(
           "miert5_gyokerok": "GYÖKÉROK: A fizikai/mechanikai ok közvetlen megnevezése"
         }},
         {{
-          "ag_nev": "2. ÁG: KARBANTARTÁSI / BEÁLLÍTÁSI ÁG",
-          "problema": "Probléma leírás az ellenőrzés/beállítás szempontjából",
+          "ag_nev": "2. ÁG: KARBANTARTÁSI / VEZÉRLÉSI / DIAGNOSZTIKAI ÁG",
+          "problema": "Probléma leírás a lassú hibakeresés és elavult vezérlés szempontjából",
           "miert1": "1. Miért kérdés és válasz",
           "miert2": "2. Miért kérdés és válasz",
           "miert3": "3. Miért kérdés és válasz",
           "miert4": "4. Miért kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A geometriai/beállítási ellenőrzés hiányossága"
+          "miert5_gyokerok": "GYÖKÉROK: Elavult vezérlőrendszer (Segment gateway) és diagnosztika hiánya"
         }},
         {{
-          "ag_nev": "3. ÁG: HORIZONTÁLIS KITERJESZTÉSI / FEJLESZTÉSI ÁG",
-          "problema": "Probléma leírás a megelőzés és többi gép szempontjából",
+          "ag_nev": "3. ÁG: ALKATRÉSZ-ELLÁTÁSI / FEJLESZTÉSI ÁG",
+          "problema": "Probléma leírás az alkatrész-elérhetőség és modernizálás szempontjából",
           "miert1": "1. Miért kérdés és válasz",
           "miert2": "2. Miért kérdés és válasz",
           "miert3": "3. Miért kérdés és válasz",
           "miert4": "4. Miért kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A horizontális ellenőrzési standard hiánya"
+          "miert5_gyokerok": "GYÖKÉROK: Megszűnt alkatrész-támogatás, multicontrollra történő fejlesztés szükségessége"
         }}
       ],
       "vegleges_akcioterv": "Rövid, katonás összefoglaló a hiba javításáról és a célzott fejlesztésről, a végén:\\nFelelős: ..........\\nHatáridő: .........."
