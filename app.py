@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- CSICSA & HIGH-TECH STÍLUS (JAVÍTOTT, JÓL LÁTHATÓ GOMBOKKAL) ---
+# --- CSICSA & HIGH-TECH STÍLUS ---
 st.markdown(
     """
 <style>
@@ -93,7 +93,7 @@ st.markdown(
         font-weight: 700 !important;
     }
 
-    /* 1. SZAKI / ZERO-BULLSHIT GOMB: ERŐS NARANCSSÁRGA HÁTTÉR, ÉLES FEHÉR SZÖVEG */
+    /* 1. SZAKI GOMB: ÉLÉNK NARANCSSÁRGA HÁTTÉR, JÓL LÁTHATÓ FEHÉR SZÖVEG */
     .st-key-btn_szaki button {
         background: linear-gradient(90deg, #ea580c 0%, #c2410c 100%) !important;
         border: 1px solid #f97316 !important;
@@ -105,7 +105,7 @@ st.markdown(
         box-shadow: 0 6px 20px rgba(234, 88, 12, 0.7) !important;
     }
 
-    /* 2. MÉRNÖKI ELEMZÉS GOMB: KOBALTKÉK HÁTTÉR, ÉLES FEHÉR SZÖVEG */
+    /* 2. MÉRNÖKI GOMB: KOBALTKÉK HÁTTÉR, JÓL LÁTHATÓ FEHÉR SZÖVEG */
     .st-key-btn_std button {
         background: linear-gradient(90deg, #0284c7 0%, #2563eb 100%) !important;
         border: 1px solid #38bdf8 !important;
@@ -195,25 +195,35 @@ with c_left:
   felelos_val = st.text_input("Karbantartási Felelős", value="Nagy Attila")
 
 with c_right:
-  st.markdown("### 📝 Műszakos Jegyzetek & Tények")
+  st.markdown("### 📝 Esemény & Célzott Fejlesztési Irány")
   jegyzet_szoveg = st.text_area(
-      "Másold be az eseményt / műszakos jegyzetet:",
-      height=188,
+      "1. Mi volt a hiba? (Műszakos jegyzet / tényleges hiba):",
+      height=110,
       value=(
           "2023.06.07.-én a rf62 gép szétszerelő állomáson a rimtető megfogó"
           " mh egyik szára eltörött. A szakos karbantartás cserélte a mh-t."
           " Ezután ellenőriztem a központosságot és a mérés kimutatta, hogy a 3"
           " irány egyikénél -2mm eltérés van. Ez az eltérés eredményezhette,"
           " hogy a több ezer nyitás-zárás alatt a szár meggyengült és eltörött."
-          " Be lett állítva a központosság, majd horizontal check lesz"
-          " alkalmazva minden hasonló gépen."
+      ),
+  )
+  fejlesztesi_cel = st.text_area(
+      (
+          "2. Mit hozzunk ki fejlesztésnek? (Elvárt végleges megoldás /"
+          " intézkedés):"
+      ),
+      height=90,
+      value=(
+          "Be lett állítva a központosság, majd horizontal check lesz"
+          " alkalmazva minden hasonló gépen, valamint a beállítási ellenőrzés"
+          " felvétele a standard PM munkalapra."
       ),
   )
 
 
 # --- INTELLIGENS, CSAK INGYENES FLASH MODELLEKET HASZNÁLÓ MOTOR ---
 def elemez_geminivel(
-    api_key, gep, hiba, datum, felelos, jegyzet, zero_bullshit=True
+    api_key, gep, hiba, datum, felelos, jegyzet, fejlesztes, zero_bullshit=True
 ):
   genai.configure(api_key=api_key)
 
@@ -247,14 +257,14 @@ def elemez_geminivel(
   if zero_bullshit:
     stilus_utasitas = """
         SZIGORÚ STÍLUSKÖVETELMÉNY - ZERO-BULLSHIT / GYÁRI SZAKI MÓD:
-        - TILOS BÁRMIFÉLE 'AI-ÍZŰ' RIZSA, corporate bullshit, körmondatok, vagy tudományoskodó szövegelés!
+        - TILOS BÁRMIFÉLE 'AI-ÍZŰ' RIZSA, corporate bullshit, körmondatok vagy felesleges szövegelés!
         - TILOSAK az ilyen szavak: 'holisztikus', 'szinergia', 'proaktív paradigma', 'optimalizáció', 'folyamatos fejlődési kultúra', 'humán tényező'.
-        - Úgy fogalmazz, mintha egy 25 éve a gépek mellett dolgozó, szűkszavú, kőkemény gyári gépésztechnikus és karbantartás-vezető írta volna kézzel a jegyzőkönyvet:
-          * Rövid, lényegretörő, pontos gépészeti mondatok.
-          * Pontos műszaki adatok: mi tört el, hol feszült, mennyi volt a mért eltérés (pl. -2mm), mit cseréltünk, mit állítottunk be, mi a határidő és felelős.
+        - Úgy fogalmazz, mintha egy szűkszavú, kőkemény gyári gépésztechnikus és karbantartás-vezető írta volna a jegyzőkönyvet:
+          * Rövid, lényegretörő, pontos gépészeti tőmondatok.
+          * Pontos műszaki adatok a jegyzetből (pl. -2mm eltérés, szártörés, csere, beállítás, stb.).
           * Az 1. oldalon a nem releváns pontok legyenek rövidek: '1. Nincs hiányosság.', '1. Nem releváns.', '1. Standard állapot fenntartása.'
-          * A 2. oldalon az 5 Miért kérdések és válaszok legyenek egyenesek, lényegretörők (miért állt le -> mert eltört a szár; miért tört el -> mert feszült a -2mm központossági hiba miatt; stb.).
-          * A végeredmény 100%-ban úgy nézzen ki, mint amit egy tapasztalt gyári szakember írt meg Wordben, SEMMI nyoma ne legyen az AI-nak!
+          * A 2. oldalon az 5 Miért kérdések és válaszok legyenek egyenesek, lényegretörők.
+          * A végeredmény 100%-ban úgy nézzen ki, mintha kézzel gépelt gyári jegyzőkönyv lenne, nulla AI jelleggel!
         """
   else:
     stilus_utasitas = (
@@ -263,14 +273,23 @@ def elemez_geminivel(
 
   prompt = f"""
     Te egy tapasztalt mechatronikai karbantartó szakember vagy a Bridgestone gyárban.
-    Elemezd az alábbi műszakos jegyzetet a gyári BSHM B-ME IDA sablon szerint:
+    Elemezd az alábbi bemeneteket a gyári BSHM B-ME IDA sablon szerint:
 
     Berendezés: {gep}
-    Hiba: {hiba}
+    Hiba megnevezése: {hiba}
     Dátum: {datum}
     Felelős: {felelos}
-    Műszakos jegyzet:
+
+    1. TÉNYLEGESEN MEGTÖRTÉNT HIBA / ESEMÉNY:
     {jegyzet}
+
+    2. CÉLZOTT FEJLESZTÉS / ELVÁRT VÉGLEGES MEGOLDÁS:
+    {fejlesztes}
+
+    KÜLÖNLEGES LEVEZETÉSI KÖVETELMÉNYEK:
+    1. A logikai levezetést (a releváns kritériumok gyökérokait, az 5 Miért 3 ágát és az intézkedéseket) úgy építsd fel, hogy logikusan és szervesen ebből a hibából pontosan a megadott fejlesztési cél ({fejlesztes}) jöjjön ki végeredményként!
+    2. FELELŐS ÉS HATÁRIDŐ SZABÁLY AZ ELLENINTÉZKEDÉS OSZLOPBAN:
+       Az 1. oldal 'Ellenintézkedés' oszlopában az intézkedés szövege után külön sorban MINDIG szerepeljen a 'Felelős: ' és 'Határidő: ' szöveg, DE NE TÖLTSD KI konkrét névvel vagy dátummal (pl. 'Felelős: ..........', 'Határidő: ..........'), mert ezt a karbantartás vezetője utólag határozza meg!
 
     {stilus_utasitas}
 
@@ -284,7 +303,7 @@ def elemez_geminivel(
           "aktualis": "1. ...",
           "hianyossag": "1. ...",
           "gyokerok": "1. ...",
-          "ellenintezkedes": "1. ..."
+          "ellenintezkedes": "1. ... (ha releváns intézkedés van: leírás + '\\nFelelős: ..........\\nHatáridő: ..........', ha nem releváns: '1. Standard CIL tisztítás fenntartása.')"
         }},
         ... (mind a 13 kritérium pontosan ebben a sorrendben: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet, Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás, Tervezés, Javítás)
       ],
@@ -308,7 +327,7 @@ def elemez_geminivel(
           "miert5_gyokerok": "GYÖKÉROK: A geometriai/beállítási ellenőrzés hiányossága"
         }},
         {{
-          "ag_nev": "3. ÁG: HORIZONTÁLIS KITERJESZTÉSI ÁG",
+          "ag_nev": "3. ÁG: HORIZONTÁLIS KITERJESZTÉSI / FEJLESZTÉSI ÁG",
           "problema": "Probléma leírás a megelőzés és többi gép szempontjából",
           "miert1": "1. Miért kérdés és válasz",
           "miert2": "2. Miért kérdés és válasz",
@@ -317,9 +336,9 @@ def elemez_geminivel(
           "miert5_gyokerok": "GYÖKÉROK: A horizontális ellenőrzési standard hiánya"
         }}
       ],
-      "vegleges_akcioterv": "Rövid, katonás összefoglaló a beavatkozásról és a horizontális ellenőrzésről felelőssel és határidővel."
+      "vegleges_akcioterv": "Rövid, katonás összefoglaló a hiba javításáról és a célzott fejlesztésről, a végén:\\nFelelős: ..........\\nHatáridő: .........."
     }}
-    Minden mező legyen közvetlenül az adott jegyzetre szabva, szakmai magyar nyelven!
+    Minden mező legyen közvetlenül az adott jegyzetre és a kívánt fejlesztésre szabva, szakmai magyar nyelven!
     """
 
   utolso_hiba = None
@@ -354,7 +373,9 @@ def elemez_geminivel(
 
 
 # --- DOKUMENTUM GENERÁLÓ MOTOR (100% GYÁRI FORMÁTUM, CSAK JANÓCZKI M!) ---
-def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
+def general_hivatalos_docx(
+    gep, hiba, datum, felelos, ai_data, jegyzet, fejlesztes
+):
   doc = docx.Document()
   for section in doc.sections:
     section.orientation = docx.enum.section.WD_ORIENT.LANDSCAPE
@@ -572,7 +593,9 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
   set_cell_bg(n_cell, "FFFFFF")
   set_cell_pad(n_cell, 50, 50, 60, 60)
   set_cell_border(n_cell, "6")
-  n_cell.text = ai_data.get("vegleges_akcioterv") or jegyzet
+
+  alap_jegyzet = f"{jegyzet}\n\nFejlesztési cél:\n{fejlesztes}"
+  n_cell.text = ai_data.get("vegleges_akcioterv") or alap_jegyzet
   n_cell.paragraphs[0].runs[0].font.name = "Calibri"
   n_cell.paragraphs[0].runs[0].font.size = Pt(8.5)
 
@@ -631,7 +654,7 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
   return output
 
 
-# --- KÉT JÓL LÁTHATÓ, SZÍNES GOMB EGYEDI KEY-VEL ---
+# --- KÉT JÓL LÁTHATÓ GOMB ---
 st.markdown("---")
 c_btn1, c_btn2 = st.columns(2)
 
@@ -679,6 +702,7 @@ if indit_szaki or indit_std:
             datum_val,
             felelos_val,
             jegyzet_szoveg,
+            fejlesztesi_cel,
             zero_bullshit=is_szaki,
         )
         docx_file = general_hivatalos_docx(
@@ -688,6 +712,7 @@ if indit_szaki or indit_std:
             felelos_val,
             ai_eredmeny,
             jegyzet_szoveg,
+            fejlesztesi_cel,
         )
 
         siker_szoveg = (
