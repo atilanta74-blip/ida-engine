@@ -9,7 +9,7 @@ from docx.shared import Inches, Pt, RGBColor
 import google.generativeai as genai
 import streamlit as st
 
-# --- OLDALBEÁLLÍTÁSOK ---
+# --- OLDALBEALLITASOK ---
 st.set_page_config(
     page_title="BSHM / B-ME // IDA",
     page_icon="⚡",
@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- CSICSA & HIGH-TECH STÍLUS (ÉLES, KONTRASZTOS, FEHÉR MEZŐFELIRATOKKAL) ---
+# --- CSICSA & HIGH-TECH STILUS (ELES, JOL LATHATO FEHER CIMKEKKEL) ---
 st.markdown(
     """
 <style>
@@ -61,148 +61,7 @@ st.markdown(
     .kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
     .kpi-value { font-size: 17px; font-weight: 700; color: #38bdf8; margin-top: 3px; }
 
-    /* BEVITELI MEZŐK BELSŐ SZÖVEGE */
-    .stTextArea textarea, .stTextInput input {
-        background-color: #0f172a !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        font-size: 14px !important;
-        line-height: 1.5 !important;
-        border: 1px solid #0284c7 !important;
-        border-radius: 8px !important;
-    }
-    .stTextArea textarea:focus, .stTextInput input:focus {
-        border-color: #38bdf8 !important;
-        box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;
-    }
-
-    /* MINDEN BEVITELI MEZŐ FELETTI CÍMKE / FELIRAT KÉNYSZERÍTETT VILÁGÍTÓ FEHÉRRE */
-    label, label p, label span, div[data-testid="stWidgetLabel"] p, div[data-testid="stWidgetLabel"] label, div[data-testid="stWidgetLabel"] span {
-        color: #f8fafc !important;
-        -webkit-text-fill-color: #f8fafc !important;
-        font-size: 14px !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.5px !important;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-    }
-
-    /* GOMBOK ALATTI MAGYARÁZÓ SZÖVEG */
-    div[data-testid="stCaptionContainer"] p, .stCaption p {
-        color: #94a3b8 !important;
-        -webkit-text-fill-color: #94a3b8 !important;
-        font-size: 12px !important;
-    }
-
-    /* GOMBOK ÁLTALÁNOS FORMÁZÁSA ÉS FEHÉR SZÖVEG BIZTOSÍTÁSA */
-    .stButton button, .stDownloadButton button {
-        width: 100% !important;
-        border: none !important;
-        border-radius: 8px !important;
-        padding: 12px 20px !important;
-        font-size: 15px !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.5px !important;
-        text-transform: uppercase !important;
-        transition: all 0.3s ease !important;
-    }
-    .stButton button *, .stDownloadButton button * {
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        font-weight: 700 !important;
-    }
-
-    /* 1. SZAKI GOMB: ÉLÉNK NARANCSSÁRGA HÁTTÉR */
-    .st-key-btn_szaki button {
-        background: linear-gradient(90deg, #ea580c 0%, #c2410c 100%) !important;
-        border: 1px solid #f97316 !important;
-        box-shadow: 0 4px 15px rgba(234, 88, 12, 0.5) !important;
-    }
-    .st-key-btn_szaki button:hover {
-        background: linear-gradient(90deg, #f97316 0%, #ea580c 100%) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(234, 88, 12, 0.7) !important;
-    }
-
-    /* 2. MÉRNÖKI GOMB: KOBALTKÉK HÁTTÉR */
-    .st-key-btn_std button {
-        background: linear-gradient(90deg, #0284c7 0%, #2563eb 100%) !important;
-        border: 1px solid #38bdf8 !important;
-        box-shadow: 0 4px 15px rgba(2, 132, 199, 0.5) !important;
-    }
-    .st-key-btn_std button:hover {
-        background: linearA képen jól látszik, hogy a Streamlit alapértelmezett beállítása szinte teljesen feketére és halványra vette a beviteli mezők feletti címkéket (`Berendezés / Gép megnevezése`, `1. Mi volt a hiba?...`), így azok szinte beleolvadnak a sötétkék háttérbe[cite: 24].
-
-A CSS-ben a `div[data-testid="stWidgetLabel"] p` szelektorral közvetlenül felülírjuk ezt a stílust: **erős, éles tiszta fehér színt (`#ffffff`), 15 px méretet, félkövér (bold) betűket és 100%-os átlátszatlanságot** kapnak.
-
----
-
-### A teljes, javított `app.py` kód (másold be a meglévő helyére a GitHubon):
-
-```python
-import io
-import json
-import docx
-from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml import parse_xml
-from docx.oxml.ns import nsdecls
-from docx.shared import Inches, Pt, RGBColor
-import google.generativeai as genai
-import streamlit as st
-
-# --- OLDALBEÁLLÍTÁSOK ---
-st.set_page_config(
-    page_title="BSHM / B-ME // IDA",
-    page_icon="⚡",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
-
-# --- CSICSA & HIGH-TECH STÍLUS (ÉLES, JÓL LÁTHATÓ FEHÉR CÍMKÉKKEL) ---
-st.markdown(
-    """
-<style>
-    .stApp {
-        background: linear-gradient(135deg, #0b0f19 0%, #111827 50%, #070a12 100%);
-        color: #e2e8f0;
-        font-family: 'Segoe UI', Roboto, sans-serif;
-    }
-    .header-box {
-        background: rgba(17, 24, 39, 0.85);
-        border: 1px solid #1e293b;
-        border-left: 5px solid #0284c7;
-        padding: 20px 25px;
-        border-radius: 12px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(2, 132, 199, 0.2);
-        margin-bottom: 25px;
-    }
-    .header-title {
-        font-size: 26px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        color: #f8fafc;
-        margin: 0;
-        text-transform: uppercase;
-    }
-    .header-sub {
-        font-size: 13px;
-        color: #38bdf8;
-        letter-spacing: 3px;
-        font-weight: 600;
-        margin-top: 4px;
-        text-transform: uppercase;
-    }
-    .kpi-card {
-        background: rgba(30, 41, 59, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        padding: 14px 18px;
-        border-radius: 10px;
-        backdrop-filter: blur(10px);
-    }
-    .kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
-    .kpi-value { font-size: 17px; font-weight: 700; color: #38bdf8; margin-top: 3px; }
-
-    /* ABLAKOK FELETTI CÍMKÉK / FELIRATOK JAVÍTÁSA: ÉLES HÓFEHÉR, BOLD, 15PX */
+    /* ABLAKOK FELETTI CIMKEK / FELIRATOK JAVITASA: ELES HOFEHER, BOLD, 15PX */
     div[data-testid="stWidgetLabel"] p, 
     div[data-testid="stWidgetLabel"] label, 
     label p, 
@@ -216,7 +75,7 @@ st.markdown(
         margin-bottom: 6px !important;
     }
 
-    /* BEMENETI MEZŐK BELSŐ TARTALMA */
+    /* BEMENETI MEZOK BELSO TARTALMA */
     .stTextArea textarea, .stTextInput input {
         background-color: #0f172a !important;
         color: #ffffff !important;
@@ -231,7 +90,7 @@ st.markdown(
         box-shadow: 0 0 12px rgba(56, 189, 248, 0.4) !important;
     }
 
-    /* GOMBOK ÁLTALÁNOS FORMÁZÁSA ÉS FEHÉR SZÖVEG BIZTOSÍTÁSA */
+    /* GOMBOK ALTALANOS FORMAZASA ES FEHER SZOVEG BIZTOSITASA */
     .stButton button, .stDownloadButton button {
         width: 100% !important;
         border: none !important;
@@ -249,7 +108,7 @@ st.markdown(
         font-weight: 700 !important;
     }
 
-    /* 1. SZAKI GOMB: ÉLÉNK NARANCSSÁRGA HÁTTÉR, JÓL LÁTHATÓ FEHÉR SZÖVEG */
+    /* 1. SZAKI GOMB: ELENK NARANCSSARGA HATTER */
     .st-key-btn_szaki button {
         background: linear-gradient(90deg, #ea580c 0%, #c2410c 100%) !important;
         border: 1px solid #f97316 !important;
@@ -261,7 +120,7 @@ st.markdown(
         box-shadow: 0 6px 20px rgba(234, 88, 12, 0.7) !important;
     }
 
-    /* 2. MÉRNÖKI GOMB: KOBALTKÉK HÁTTÉR, JÓL LÁTHATÓ FEHÉR SZÖVEG */
+    /* 2. MERNOKI GOMB: KOBALTKEK HATTER */
     .st-key-btn_std button {
         background: linear-gradient(90deg, #0284c7 0%, #2563eb 100%) !important;
         border: 1px solid #38bdf8 !important;
@@ -273,14 +132,13 @@ st.markdown(
         box-shadow: 0 6px 20px rgba(2, 132, 199, 0.7) !important;
     }
 
-    /* LETÖLTÉS GOMB */
+    /* LETOLTES GOMB */
     .stDownloadButton button {
         background: linear-gradient(90deg, #059669 0%, #10b981 100%) !important;
         border: 1px solid #34d399 !important;
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.5) !important;
     }
 
-    /* CÍMKÉK ALATTI MAGYARÁZÓ SZÖVEGEK */
     .stCaption p, .stCaption {
         color: #94a3b8 !important;
         -webkit-text-fill-color: #94a3b8 !important;
@@ -290,9 +148,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# --- OLDALSÁV: API KULCS BEÁLLÍTÁSA ---
+# --- OLDALSAV: API KULCS BEALLITASA ---
 with st.sidebar:
-  st.markdown("### ⚙️ AI Rendszer Beállítás")
+  st.markdown("### ⚙️ AI Rendszer Beallitas")
   api_key_input = st.text_input(
       "Google Gemini API Kulcs:",
       type="password",
@@ -301,11 +159,11 @@ with st.sidebar:
   )
   st.markdown("---")
   st.markdown(
-      "💡 **Tipp:** Ha a Streamlit Secrets-be beírtad a `GEMINI_API_KEY`-t,"
-      " üresen maradhat."
+      "💡 **Tipp:** Ha a Streamlit Secrets-be beirtad a `GEMINI_API_KEY`-t,"
+      " uresen maradhat."
   )
 
-# --- FEJLÉC ÉS KPI STATUS BAR ---
+# --- FEJLEC ES KPI STATUS BAR ---
 st.markdown(
     """
 <div class="header-box">
@@ -320,60 +178,60 @@ col_k1, col_k2, col_k3, col_k4 = st.columns(4)
 with col_k1:
   st.markdown(
       '<div class="kpi-card"><div class="kpi-title">Rendszer'
-      ' Státusz</div><div class="kpi-value" style="color: #4ade80;">● ONLINE /'
+      ' Statusz</div><div class="kpi-value" style="color: #4ade80;">● ONLINE /'
       " AI READY</div></div>",
       unsafe_allow_html=True,
   )
 with col_k2:
   st.markdown(
-      '<div class="kpi-card"><div class="kpi-title">Sablon Revízió</div><div'
+      '<div class="kpi-card"><div class="kpi-title">Sablon Revizio</div><div'
       ' class="kpi-value">Rev. 3 (2019.04.03)</div></div>',
       unsafe_allow_html=True,
   )
 with col_k3:
   st.markdown(
-      '<div class="kpi-card"><div class="kpi-title">Regisztráció</div><div'
+      '<div class="kpi-card"><div class="kpi-title">Regisztracio</div><div'
       ' class="kpi-value">BME001-F-BDE-3</div></div>',
       unsafe_allow_html=True,
   )
 with col_k4:
   st.markdown(
-      '<div class="kpi-card"><div class="kpi-title">Ellenőrzési'
-      ' Felelős</div><div class="kpi-value">Janóczki M</div></div>',
+      '<div class="kpi-card"><div class="kpi-title">Ellenorzesi'
+      ' Felelos</div><div class="kpi-value">Janoczki M</div></div>',
       unsafe_allow_html=True,
   )
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# --- BEVITELI MEZŐK ---
+# --- BEVITELI MEZOK ---
 c_left, c_right = st.columns([1, 1.4])
 with c_left:
   st.markdown("### 📋 Alapadatok")
-  gep_nev = st.text_input("Berendezés / Gép megnevezése", value="12k pit")
-  hiba_rovid = st.text_input("Hiba megnevezése", value="12k pit hiba")
-  datum_val = st.text_input("Dátum", value="2026.10.14.")
-  felelos_val = st.text_input("Karbantartási Felelős", value="Nagy Attila")
+  gep_nev = st.text_input("Berendezes / Gep megnevezese", value="12k pit")
+  hiba_rovid = st.text_input("Hiba megnevezese", value="12k pit hiba")
+  datum_val = st.text_input("Datum", value="2026.10.14.")
+  felelos_val = st.text_input("Karbantartasi Felelos", value="Nagy Attila")
 
 with c_right:
-  st.markdown("### 📝 Esemény & Célzott Fejlesztési Irány")
+  st.markdown("### 📝 Esemeny & Celzott Fejlesztesi Irany")
   jegyzet_szoveg = st.text_area(
-      "1. Mi volt a hiba? (Műszakos jegyzet / tényleges hiba):",
+      "1. Mi volt a hiba? (Muszakos jegyzet / tenyleges hiba):",
       height=110,
       value=(
-          "(PIT1 becsatlakozó cv-n heveder csere megtörtént és a cv közelebb"
-          " lett állítva a lehordó cv-hez.)"
+          "(PIT1 becsatlakozo cv-n heveder csere megtortent es a cv kozelebb"
+          " lett allitva a lehordo cv-hez.)"
       ),
   )
   fejlesztesi_cel = st.text_area(
       (
-          "2. Mit hozzunk ki fejlesztésnek? (Elvárt végleges megoldás /"
-          " intézkedés):"
+          "2. Mit hozzunk ki fejlesztesnek? (Elvart vegleges megoldas /"
+          " intezkedes):"
       ),
       height=90,
       value=(
-          "a régi Segment gateway controllok lecserélése multicontroll-ra a"
-          " gyorsabb hibakeresés miatt és hogy van hozzá még csere alkatrész a"
-          " régiekkel ellentétben"
+          "a regi Segment gateway controllok lecserelese multicontroll-ra a"
+          " gyorsabb hibakereses miatt es hogy van hozza meg csere alkatresz a"
+          " regiekkel ellentetben"
       ),
   )
 
@@ -413,89 +271,89 @@ def elemez_geminivel(
 
   if zero_bullshit:
     stilus_utasitas = """
-        SZIGORÚ STÍLUSKÖVETELMÉNY - ZERO-BULLSHIT / GYÁRI SZAKI MÓD:
-        - TILOS BÁRMIFÉLE 'AI-ÍZŰ' RIZSA, corporate bullshit, körmondatok vagy felesleges szövegelés!
-        - TILOSAK az ilyen szavak: 'holisztikus', 'szinergia', 'proaktív paradigma', 'optimalizáció', 'folyamatos fejlődési kultúra', 'humán tényező'.
-        - Úgy fogalmazz, mintha egy szűkszavú, kőkemény gyári gépésztechnikus és karbantartás-vezető írta volna a jegyzőkönyvet:
-          * Rövid, lényegretörő, pontos gépészeti tőmondatok.
-          * Pontos műszaki adatok a jegyzetből (heveder kopás/csere, CV távolságállítás, elavult Segment gateway, alkatrészhiány, multicontroll modernizálás).
-          * Az 1. oldalon a nem releváns pontok legyenek rövidek: '1. Nincs hiányosság.', '1. Nem releváns.', '1. Standard állapot fenntartása.'
-          * A 2. oldalon az 5 Miért kérdések és válaszok legyenek egyenesek, lényegretörők.
-          * A végeredmény 100%-ban úgy nézzen ki, mintha kézzel gépelt gyári jegyzőkönyv lenne, nulla AI jelleggel!
+        SZIGORU STILUSKOVETELMENY - ZERO-BULLSHIT / GYARI SZAKI MOD:
+        - TILOS BARMIFELE 'AI-IZU' RIZSA, corporate bullshit, kormondatok vagy felesleges szovegeles!
+        - TILOSAK az ilyen szavak: 'holisztikus', 'szinergia', 'proaktiv paradigma', 'optimalizacio', 'folyamatos fejlodesi kultura', 'human tenyezo'.
+        - Ugy fogalmazz, mintha egy szukszavu, kokemeny gyari gepesztechnikus es karbantartas-vezeto irta volna a jegyzokonyvet:
+          * Rovid, lenyegretoro, pontos gepeszeti tomondatok.
+          * Pontos muszaki adatok a jegyzetbol (heveder kopas/csere, CV tavolsagallitas, elavult Segment gateway, alkatreszhiany, multicontroll modernizalas).
+          * Az 1. oldalon a nem relevans pontok legyenek rovidek: '1. Nincs hianyossag.', '1. Nem relevans.', '1. Standard allapot fenntartasa.'
+          * A 2. oldalon az 5 Miert kerdesek es valaszok legyenek egyenesek, lenyegretorok.
+          * A vegeredmeny 100%-ban ugy nezzen ki, mintha kezzel gepelt gyari jegyzokonyv lenne, nulla AI jelleggel!
         """
   else:
     stilus_utasitas = (
-        "Hivatalos mérnöki stílusban, részletesen fejtsd ki a pontokat."
+        "Hivatalos mernoki stilusban, reszletesen fejtsd ki a pontokat."
     )
 
   prompt = f"""
-    Te egy tapasztalt mechatronikai karbantartó szakember vagy a Bridgestone gyárban.
-    Elemezd az alábbi bemeneteket a gyári BSHM B-ME IDA sablon szerint:
+    Te egy tapasztalt mechatronikai karbantarto szakember vagy a Bridgestone gyarban.
+    Elemezd az alabbi bemeneteket a gyari BSHM B-ME IDA sablon szerint:
 
-    Berendezés: {gep}
-    Hiba megnevezése: {hiba}
-    Dátum: {datum}
-    Felelős: {felelos}
+    Berendezes: {gep}
+    Hiba megnevezese: {hiba}
+    Datum: {datum}
+    Felelos: {felelos}
 
-    1. TÉNYLEGESEN MEGTÖRTÉNT HIBA / ESEMÉNY:
+    1. TENYLEGESEN MEGTORTENT HIBA / ESEMENY:
     {jegyzet}
 
-    2. CÉLZOTT FEJLESZTÉS / ELVÁRT VÉGLEGES MEGOLDÁS:
+    2. CELZOTT FEJLESZTES / ELVART VEGLEGES MEGOLDAS:
     {fejlesztes}
 
-    KÜLÖNLEGES LEVEZETÉSI KÖVETELMÉNYEK:
-    1. A logikai levezetést (a releváns kritériumok gyökérokait, az 5 Miért 3 ágát és az intézkedéseket) úgy építsd fel, hogy logikusan és szervesen ebből a hibából pontosan a megadott fejlesztési cél ({fejlesztes}) jöjjön ki végeredményként!
-    2. FELELŐS ÉS HATÁRIDŐ SZABÁLY AZ ELLENINTÉZKEDÉS OSZLOPBAN:
-       Az 1. oldal 'Ellenintézkedés' oszlopában az intézkedés szövege után külön sorban MINDIG szerepeljen a 'Felelős: ' és 'Határidő: ' szöveg, DE NE TÖLTSD KI konkrét névvel vagy dátummal (pl. 'Felelős: ..........\\nHatáridő: ..........'), mert ezt a karbantartás vezetője utólag határozza meg!
+    KULONLEGES LEVEZETESI KOVETELMENYEK:
+    1. A logikai levezetést (a relevans kriteriumok gyokerokait, az 5 Miert 3 agat es az intezkedeseket) ugy epitsd fel, hogy logikusan es szervesen ebbol a hibabol pontosan a megadott fejlesztesi cel ({fejlesztes}) jojjon ki vegeredmenykent!
+    2. FELELOS ES HATARIDO SZABALY AZ ELLENINTEZKEDES OSZLOPBAN:
+       Az 1. oldal 'Ellenintezkedes' oszlopaban az intezkedes szovege utan kulon sorban MINDIG szerepeljen a 'Felelos: ' es 'Hatarido: ' szoveg, DE NE TOLTSD KI konkret nevvel vagy datummal (pl. 'Felelos: ..........\\nHatarido: ..........'), mert ezt a karbantartas vezetoje utolag hatarozza meg!
 
     {stilus_utasitas}
 
-    KIZÁRÓLAG érvényes JSON formátumban válaszolj, az alábbi séma szerint:
+    KIZAROLAG ervenyes JSON formatumban valaszolj, az alabbi sema szerint:
     {{
       "kriteriumok": [
         {{
           "nev": "Tisztaság",
-          "kerdes": "(A részegység (berendezés) elég tiszta, hogy ellenőrizhető legyen és az állapota ne romoljon rohamosan?)",
+          "kerdes": "(A reszegység (berendezés) elég tiszta, hogy ellenőrizhető legyen és az állapota ne romoljon rohamosan?)",
           "idealis": "1. ...",
           "aktualis": "1. ...",
           "hianyossag": "1. ...",
           "gyokerok": "1. ...",
-          "ellenintezkedes": "1. ... (ha releváns intézkedés van: leírás + '\\nFelelős: ..........\\nHatáridő: ..........', ha nem releváns: '1. Standard CIL tisztítás fenntartása.')"
+          "ellenintezkedes": "1. ... (ha relevans intezkedes van: leiras + '\\nFelelos: ..........\\nHatarido: ..........', ha nem relevans: '1. Standard CIL tisztitas fenntartasa.')"
         }},
-        ... (mind a 13 kritérium pontosan ebben a sorrendben: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet, Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás, Tervezés, Javítás)
+        ... (mind a 13 kriterium pontosan ebben a sorrendben: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet, Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás, Tervezés, Javítás)
       ],
       "ot_miert_agak": [
         {{
-          "ag_nev": "1. ÁG: MŰSZAKI / FIZIKAI ÁG",
-          "problema": "Probléma leírás a mechanikai / hajtás / heveder szempontból",
-          "miert1": "1. Miért kérdés és válasz",
-          "miert2": "2. Miért kérdés és válasz",
-          "miert3": "3. Miért kérdés és válasz",
-          "miert4": "4. Miért kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A fizikai/mechanikai ok közvetlen megnevezése"
+          "ag_nev": "1. AG: MUSZAKI / FIZIKAI AG",
+          "problema": "Problema leiras a mechanikai / hajtas / heveder szempontbol",
+          "miert1": "1. Miert kerdes es valasz",
+          "miert2": "2. Miert kerdes es valasz",
+          "miert3": "3. Miert kerdes es valasz",
+          "miert4": "4. Miert kerdes es valasz",
+          "miert5_gyokerok": "GYOKEROK: A fizikai/mechanikai ok kozvetlen megnevezese"
         }},
         {{
-          "ag_nev": "2. ÁG: KARBANTARTÁSI / VEZÉRLÉSI / DIAGNOSZTIKAI ÁG",
-          "problema": "Probléma leírás a lassú hibakeresés és elavult vezérlés szempontjából",
-          "miert1": "1. Miért kérdés és válasz",
-          "miert2": "2. Miért kérdés és válasz",
-          "miert3": "3. Miért kérdés és válasz",
-          "miert4": "4. Miért kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: Elavult vezérlőrendszer (Segment gateway) és diagnosztika hiánya"
+          "ag_nev": "2. AG: KARBANTARTASI / VEZERLESI / DIAGNOSZTIKAI AG",
+          "problema": "Problema leiras a lassu hibakereses es elavult vezerles szempontjabol",
+          "miert1": "1. Miert kerdes es valasz",
+          "miert2": "2. Miert kerdes es valasz",
+          "miert3": "3. Miert kerdes es valasz",
+          "miert4": "4. Miert kerdes es valasz",
+          "miert5_gyokerok": "GYOKEROK: Elavult vezerlorendszer (Segment gateway) es diagnosztika hianya"
         }},
         {{
-          "ag_nev": "3. ÁG: ALKATRÉSZ-ELLÁTÁSI / FEJLESZTÉSI ÁG",
-          "problema": "Probléma leírás az alkatrész-elérhetőség és modernizálás szempontjából",
-          "miert1": "1. Miért kérdés és válasz",
-          "miert2": "2. Miért kérdés és válasz",
-          "miert3": "3. Miért kérdés és válasz",
-          "miert4": "4. Miért kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: Megszűnt alkatrész-támogatás, multicontrollra történő fejlesztés szükségessége"
+          "ag_nev": "3. AG: ALKATRESZ-ELLATASI / FEJLESZTESI AG",
+          "problema": "Problema leiras az alkatresz-elerhetoseg es modernizalas szempontjabol",
+          "miert1": "1. Miert kerdes es valasz",
+          "miert2": "2. Miert kerdes es valasz",
+          "miert3": "3. Miert kerdes es valasz",
+          "miert4": "4. Miert kerdes es valasz",
+          "miert5_gyokerok": "GYOKEROK: Megszunt alkatresz-tamogatas, multicontrollra torteno fejlesztes szuksegessege"
         }}
       ],
-      "vegleges_akcioterv": "Rövid, katonás összefoglaló a hiba javításáról és a célzott fejlesztésről, a végén:\\nFelelős: ..........\\nHatáridő: .........."
+      "vegleges_akcioterv": "Rovid, katonas osszefoglalo a hiba javitasarol es a celzott fejlesztesrol, a vegen:\\nFelelos: ..........\\nHatarido: .........."
     }}
-    Minden mező legyen közvetlenül az adott jegyzetre és a kívánt fejlesztésre szabva, szakmai magyar nyelven!
+    Minden mezo legyen kozvetlenul az adott jegyzetre es a kivant fejlesztesre szabva, szakmai magyar nyelven!
     """
 
   utolso_hiba = None
@@ -529,7 +387,7 @@ def elemez_geminivel(
   raise utolso_hiba
 
 
-# --- DOKUMENTUM GENERÁLÓ MOTOR (100% GYÁRI FORMÁTUM, CSAK JANÓCZKI M!) ---
+# --- DOKUMENTUM GENERALO MOTOR (100% GYARI FORMATUM, CSAK JANOCZKI M!) ---
 def general_hivatalos_docx(
     gep, hiba, datum, felelos, ai_data, jegyzet, fejlesztes
 ):
@@ -891,4 +749,3 @@ if indit_szaki or indit_std:
         )
       except Exception as e:
         st.error(f"Hiba történt az elemzés során: {e}")
-          
