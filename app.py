@@ -76,16 +76,31 @@ st.markdown(
     }
     .stButton>button {
         width: 100%;
-        background: linear-gradient(90deg, #0284c7 0%, #2563eb 100%) !important;
         color: #ffffff !important;
-        font-size: 16px !important;
+        font-size: 15px !important;
         font-weight: 700 !important;
-        letter-spacing: 1.5px !important;
+        letter-spacing: 1px !important;
         text-transform: uppercase !important;
         border: none !important;
         border-radius: 8px !important;
-        padding: 12px 24px !important;
+        padding: 12px 20px !important;
+        transition: all 0.3s ease !important;
+    }
+    .btn-szaki>button {
+        background: linear-gradient(90deg, #ea580c 0%, #c2410c 100%) !important;
+        box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4) !important;
+    }
+    .btn-szaki>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(234, 88, 12, 0.6) !important;
+    }
+    .btn-std>button {
+        background: linear-gradient(90deg, #0284c7 0%, #2563eb 100%) !important;
         box-shadow: 0 4px 15px rgba(2, 132, 199, 0.4) !important;
+    }
+    .btn-std>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(2, 132, 199, 0.6) !important;
     }
     .stDownloadButton>button {
         width: 100%;
@@ -184,8 +199,10 @@ with c_right:
   )
 
 
-# --- INTELLIGENS, FLASH MODELLEKET HASZNÁLÓ MOTOR ---
-def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
+# --- INTELLIGENS, CSAK INGYENES FLASH MODELLEKET HASZNÁLÓ MOTOR ---
+def elemez_geminivel(
+    api_key, gep, hiba, datum, felelos, jegyzet, zero_bullshit=True
+):
   genai.configure(api_key=api_key)
 
   elerheto = []
@@ -196,7 +213,6 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
   except Exception:
     pass
 
-  # KIZÁRJUK a "pro" modelleket, hogy ne fusson 429 kvótahibára
   flash_list = [
       m for m in elerheto if "flash" in m.lower() and "pro" not in m.lower()
   ]
@@ -216,9 +232,26 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
     if m not in kiprobalando:
       kiprobalando.append(m)
 
+  if zero_bullshit:
+    stilus_utasitas = """
+        SZIGORÚ STÍLUSKÖVETELMÉNY - ZERO-BULLSHIT / GYÁRI SZAKI MÓD:
+        - TILOS BÁRMIFÉLE 'AI-ÍZŰ' RIZSA, corporate bullshit, körmondatok, vagy tudományoskodó szövegelés!
+        - TILOSAK az ilyen szavak: 'holisztikus', 'szinergia', 'proaktív paradigma', 'optimalizáció', 'folyamatos fejlődési kultúra', 'humán tényező'.
+        - Úgy fogalmazz, mintha egy 25 éve a gépek mellett dolgozó, szűkszavú, kőkemény gyári gépésztechnikus és karbantartás-vezető írta volna kézzel a jegyzőkönyvet:
+          * Rövid, lényegretörő, pontos gépészeti mondatok.
+          * Pontos műszaki adatok: mi tört el, hol feszült, mennyi volt a mért eltérés (pl. -2mm), mit cseréltünk, mit állítottunk be, mi a határidő és felelős.
+          * Az 1. oldalon a nem releváns pontok legyenek rövidek: '1. Nincs hiányosság.', '1. Nem releváns.', '1. Standard állapot fenntartása.'
+          * A 2. oldalon az 5 Miért kérdések és válaszok legyenek egyenesek, lényegretörők (miért állt le -> mert eltört a szár; miért tört el -> mert feszült a -2mm központossági hiba miatt; stb.).
+          * A végeredmény 100%-ban úgy nézzen ki, mint amit egy tapasztalt gyári szakember írt meg Wordben, SEMMI nyoma ne legyen az AI-nak!
+        """
+  else:
+    stilus_utasitas = (
+        "Hivatalos mérnöki stílusban, részletesen fejtsd ki a pontokat."
+    )
+
   prompt = f"""
-    Te egy tapasztalt mechatronikai TPM karbantartó mérnök vagy a Bridgestone gyárban.
-    Elemezd az alábbi konkrét műszakos jegyzetet a gyári BSHM B-ME IDA szabvány szerint:
+    Te egy tapasztalt mechatronikai karbantartó szakember vagy a Bridgestone gyárban.
+    Elemezd az alábbi műszakos jegyzetet a gyári BSHM B-ME IDA sablon szerint:
 
     Berendezés: {gep}
     Hiba: {hiba}
@@ -226,6 +259,8 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
     Felelős: {felelos}
     Műszakos jegyzet:
     {jegyzet}
+
+    {stilus_utasitas}
 
     KIZÁRÓLAG érvényes JSON formátumban válaszolj, az alábbi séma szerint:
     {{
@@ -235,34 +270,34 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
           "kerdes": "(A részegység (berendezés) elég tiszta, hogy ellenőrizhető legyen és az állapota ne romoljon rohamosan?)",
           "idealis": "1. ...",
           "aktualis": "1. ...",
-          "hianyossag": "1. ... (ha nincs: 1. Nincs hiányosság.)",
-          "gyokerok": "1. ... (ha nincs: 1. Nem releváns.)",
-          "ellenintezkedes": "1. ... (ha nincs: 1. Standard CIL tisztítás fenntartása.)"
+          "hianyossag": "1. ...",
+          "gyokerok": "1. ...",
+          "ellenintezkedes": "1. ..."
         }},
-        ... (mind a 13 kritérium sorrendben: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet, Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás, Tervezés, Javítás)
+        ... (mind a 13 kritérium pontosan ebben a sorrendben: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet, Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás, Tervezés, Javítás)
       ],
       "ot_miert_agak": [
         {{
           "ag_nev": "1. ÁG: MŰSZAKI / FIZIKAI ÁG",
-          "problema": "Probléma leírás a mechanikai törés / feszültség szempontjából",
+          "problema": "Probléma leírás a mechanikai hiba/feszültség szempontjából",
           "miert1": "1. Miért kérdés és válasz",
           "miert2": "2. Miért kérdés és válasz",
           "miert3": "3. Miért kérdés és válasz",
           "miert4": "4. Miért kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A fizikai/mechanikai ok"
+          "miert5_gyokerok": "GYÖKÉROK: A fizikai/mechanikai ok közvetlen megnevezése"
         }},
         {{
-          "ag_nev": "2. ÁG: KARBANTARTÁSI / MEGELŐZÉSI ÁG",
-          "problema": "Probléma leírás a beállítási és megelőzési ellenőrzés szempontjából",
+          "ag_nev": "2. ÁG: KARBANTARTÁSI / BEÁLLÍTÁSI ÁG",
+          "problema": "Probléma leírás az ellenőrzés/beállítás szempontjából",
           "miert1": "1. Miért kérdés és válasz",
           "miert2": "2. Miért kérdés és válasz",
           "miert3": "3. Miért kérdés és válasz",
           "miert4": "4. Miért kérdés és válasz",
-          "miert5_gyokerok": "GYÖKÉROK: A geometriai / központossági ellenőrzési ciklus hiánya"
+          "miert5_gyokerok": "GYÖKÉROK: A geometriai/beállítási ellenőrzés hiányossága"
         }},
         {{
           "ag_nev": "3. ÁG: HORIZONTÁLIS KITERJESZTÉSI ÁG",
-          "problema": "Probléma leírás a hasonló gépekre történő kiterjesztés szempontjából",
+          "problema": "Probléma leírás a megelőzés és többi gép szempontjából",
           "miert1": "1. Miért kérdés és válasz",
           "miert2": "2. Miért kérdés és válasz",
           "miert3": "3. Miért kérdés és válasz",
@@ -270,7 +305,7 @@ def elemez_geminivel(api_key, gep, hiba, datum, felelos, jegyzet):
           "miert5_gyokerok": "GYÖKÉROK: A horizontális ellenőrzési standard hiánya"
         }}
       ],
-      "vegleges_akcioterv": "Részletes összefoglaló a hibáról, az elvégzett beavatkozásról és a horizontális check bevezetéséről felelőssel és határidővel."
+      "vegleges_akcioterv": "Rövid, katonás összefoglaló a beavatkozásról és a horizontális ellenőrzésről felelőssel és határidővel."
     }}
     Minden mező legyen közvetlenül az adott jegyzetre szabva, szakmai magyar nyelven!
     """
@@ -384,8 +419,8 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
       "IDEÁLIS ÁLLAPOT",
       "AKTUÁLIS ÁLLAPOT",
       "HIÁNYOSSÁG",
-      "Hiányosság gyökéroka\n(ismert, vagy “5 miért” elemzés alapján)",
-      "Ellenintézkedés\n(határidő, felelős, standardizálás)",
+      "Hiányosság gyökéroka\\n(ismert, vagy “5 miért” elemzés alapján)",
+      "Ellenintézkedés\\n(határidő, felelős, standardizálás)",
   ]
   for c_i, h in enumerate(sub_heads):
     p1_table.cell(1, c_i).text = h
@@ -407,7 +442,7 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
     if r_idx >= 15:
       break
     col_vals = [
-        f"{krit.get('nev', '')}\n{krit.get('kerdes', '')}",
+        f"{krit.get('nev', '')}\\n{krit.get('kerdes', '')}",
         krit.get("idealis", "1. Standard állapot."),
         krit.get("aktualis", "1. Megfelelő."),
         krit.get("hianyossag", "1. Nincs hiányosság."),
@@ -584,21 +619,53 @@ def general_hivatalos_docx(gep, hiba, datum, felelos, ai_data, jegyzet):
   return output
 
 
-# --- GOMB ÉS FOLYAMAT ---
-if st.button("⚡ INTELLIGENS ELEMZÉS & DOKUMENTUM GENERÁLÁSA"):
+# --- KÉT GOMB: ZERO-BULLSHIT (SZAKI) ÉS STANDARD ---
+st.markdown("---")
+c_btn1, c_btn2 = st.columns(2)
+
+indit_szaki = False
+indit_std = False
+
+with c_btn1:
+  st.markdown('<div class="btn-szaki">', unsafe_allow_html=True)
+  if st.button("🛠️ GYÁRI SZAKI ELEMZÉS (ZERO-BULLSHIT / NEM AI ÍZŰ)"):
+    indit_szaki = True
+  st.markdown("</div>", unsafe_allow_html=True)
+  st.caption(
+      "⚡ Tömör, katonás, életszerű gépész megfogalmazás: csak a tények, nulla"
+      " tankönyvi rizsa."
+  )
+
+with c_btn2:
+  st.markdown('<div class="btn-std">', unsafe_allow_html=True)
+  if st.button("⚡ RÉSZLETES MÉRNÖKI ELEMZÉS"):
+    indit_std = True
+  st.markdown("</div>", unsafe_allow_html=True)
+  st.caption("📘 Részletesebb, bővebb szakmai magyarázatok.")
+
+if indit_szaki or indit_std:
   api_key = api_key_input.strip()
   if not api_key:
     st.error(
         "⚠️ Kérlek, add meg a Google Gemini API kulcsot a bal oldali sávban!"
     )
   else:
-    with st.spinner(
-        "🧠 A mesterséges intelligencia elemzi a jegyzetet és felépíti az 5-Miért"
-        " ágakat..."
-    ):
+    is_szaki = indit_szaki
+    uzenet = (
+        "🛠️ Gyári szaki elemzés fut (Zero-Bullshit mód)..."
+        if is_szaki
+        else "🧠 Mérnöki elemzés fut..."
+    )
+    with st.spinner(uzenet):
       try:
         ai_eredmeny = elemez_geminivel(
-            api_key, gep_nev, hiba_rovid, datum_val, felelos_val, jegyzet_szoveg
+            api_key,
+            gep_nev,
+            hiba_rovid,
+            datum_val,
+            felelos_val,
+            jegyzet_szoveg,
+            zero_bullshit=is_szaki,
         )
         docx_file = general_hivatalos_docx(
             gep_nev,
@@ -609,10 +676,13 @@ if st.button("⚡ INTELLIGENS ELEMZÉS & DOKUMENTUM GENERÁLÁSA"):
             jegyzet_szoveg,
         )
 
-        st.success(
-            "✅ Az új hibajelenség mélyanalízise és a dokumentum sikeresen"
-            " elkészült!"
+        siker_szoveg = (
+            "✅ Kész! Az elemzés lényegretörő, valódi gyári stílusban készült"
+            " el (nulla AI-rizsa)!"
+            if is_szaki
+            else "✅ Az elemzés sikeresen elkészült!"
         )
+        st.success(siker_szoveg)
         st.download_button(
             label="📥 HIVATALOS WORD DOKUMENTUM LETÖLTÉSE (.DOCX)",
             data=docx_file,
