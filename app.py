@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# --- CSICSA & HIGH-TECH STILUS (ELES, JOL LATHATO FEHER CIMKEKKEL) ---
+# --- CSICSA & HIGH-TECH STILUS (ELES, JOL LATHATO FEHER CIMKEKKEL ES CHECKBOXOKKAL) ---
 st.markdown(
     """
 <style>
@@ -61,7 +61,7 @@ st.markdown(
     .kpi-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; }
     .kpi-value { font-size: 17px; font-weight: 700; color: #38bdf8; margin-top: 3px; }
 
-    /* ABLAKOK FELETTI CIMKEK / FELIRATOK JAVITASA: ELES HOFEHER, BOLD, 15PX */
+    /* ABLAKOK FELETTI CIMKEK: ELES HOFEHER, BOLD, 15PX */
     div[data-testid="stWidgetLabel"] p, 
     div[data-testid="stWidgetLabel"] label, 
     label p, 
@@ -73,6 +73,16 @@ st.markdown(
         letter-spacing: 0.5px !important;
         opacity: 1 !important;
         margin-bottom: 6px !important;
+    }
+
+    /* CHECKBOXOK STILUSA: ELES FEHER SZÖVEG, NAGYOBB BETUK */
+    div[data-testid="stCheckbox"] label p,
+    div[data-testid="stCheckbox"] label span {
+        font-size: 15px !important;
+        font-weight: 700 !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        letter-spacing: 0.5px !important;
     }
 
     /* BEMENETI MEZOK BELSO TARTALMA */
@@ -235,10 +245,111 @@ with c_right:
       ),
   )
 
+# --- KRITERIUMOK LISTAJA (A GYARI TABLAZAT ALAPJAN) ---
+kriterium_lista = [
+    (
+        "Tisztaság",
+        "(A részegység (berendezés) elég tiszta, hogy ellenőrizhető legyen és az"
+        " állapota ne romoljon rohamosan?)",
+    ),
+    ("Meghúzottság", "(A kötőelemek megfelelően meg vannak húzva?)"),
+    (
+        "Kenés",
+        "(A részegység (berendezés) a kenési tervnek megfelelő típusú,"
+        " mennyiségű kenőanyaggal, megfelelő gyakorisággal, és megfelelő"
+        " módszerrel volt kenve?)",
+    ),
+    (
+        "Karbantartás",
+        "(A részegység (berendezés) szükséges elemei az előírásoknak"
+        " megfelelően vannak karbantartva? A karbantartási gyakoriság"
+        " megfelelő? Megfelelőek a karbantartási standardok és eljárások?)",
+    ),
+    (
+        "Környezet",
+        "(A részegység (berendezés) az előírásoknak megfelelő környezeti"
+        " körülmények között üzemel?)",
+    ),
+    (
+        "Működtetés",
+        "(A megfelelő működtetést meghatározó munkafolyamatokat következetese"
+        " betartják? Végez a részegység (berendezés) nem rendeltetésszerű"
+        " műveleteket?)",
+    ),
+    (
+        "Specifikáció",
+        "(Működtetik a részegységet (berendezést) határértékek (sebesség,"
+        " nyomás, terhelés stb.) fölött?)",
+    ),
+    (
+        "Működés",
+        "(Végez nem megfelelő, vagy fölösleges, műveletet a részegység"
+        " (berendezés)?)",
+    ),
+    (
+        "Telepítés",
+        "(A részegység (berendezés) telepítése során szigorúan követték az"
+        " összeszerelési útmutatót és standardot? Az elvárt telepítési"
+        " körülményeket elérték?)",
+    ),
+    (
+        "Összeszerelés",
+        "(A részegység (berendezés) alkatrészei megfelelően illeszkednek"
+        " egymáshoz?)",
+    ),
+    (
+        "Gyártás",
+        "(A részegység (berendezés) alkatrészei a rajzoknak megfelelően lettek"
+        " legyártva és összeszerelve?)",
+    ),
+    (
+        "Tervezés",
+        "(Az egyes alkatrészek vagy eszközök megbízhatóan teszik a dolgukat?)",
+    ),
+    (
+        "Javítás",
+        "(Az üzemzavar elhárítása az elvárt idő alatt és minőségben"
+        " megtörtént?)",
+    ),
+]
+
+# --- BEPIPÁLHATÓ KRITÉRIUMOK KIVÁLASZTÁSA ---
+st.markdown("### ☑️ Kifejtendő Kritériumok kiválasztása (az 1. oldalhoz)")
+st.markdown(
+    "<span style='color: #94a3b8; font-size: 13px;'>Pipáld be azokat a"
+    " kritériumokat, amiket ki akarsz fejteni. <b>Ahova nem kerül pipa, az a"
+    " sor teljesen üresen marad a kész Word dokumentumban!</b></span>",
+    unsafe_allow_html=True,
+)
+
+cb_cols = st.columns(4)
+col_items = [
+    kriterium_lista[0:4],  # Tisztaság, Meghúzottság, Kenés, Karbantartás
+    kriterium_lista[4:7],  # Környezet, Működtetés, Specifikáció
+    kriterium_lista,  # Működés, Telepítés, Összeszerelés
+    kriterium_lista,  # Gyártás, Tervezés, Javítás
+]
+
+kivalasztott_kriteriumok = []
+for c_idx, items in enumerate(col_items):
+  with cb_cols[c_idx]:
+    for nev, kerdes in items:
+      alap_ertek = True if nev in ["Karbantartás", "Javítás"] else False
+      if st.checkbox(nev, value=alap_ertek, key=f"cb_{nev}"):
+        kivalasztott_kriteriumok.append(nev)
+
 
 # --- INTELLIGENS FLASH MOTOR ---
 def elemez_geminivel(
-    api_key, gep, hiba, datum, felelos, jegyzet, fejlesztes, zero_bullshit=True
+    api_key,
+    gep,
+    hiba,
+    datum,
+    felelos,
+    jegyzet,
+    fejlesztes,
+    kivalasztott,
+    zero_bullshit=True,
 ):
   genai.configure(api_key=api_key)
 
@@ -277,7 +388,6 @@ def elemez_geminivel(
         - Ugy fogalmazz, mintha egy szukszavu, kokemeny gyari gepesztechnikus es karbantartas-vezeto irta volna a jegyzokonyvet:
           * Rovid, lenyegretoro, pontos gepeszeti tomondatok.
           * Pontos muszaki adatok a jegyzetbol (heveder kopas/csere, CV tavolsagallitas, elavult Segment gateway, alkatreszhiany, multicontroll modernizalas).
-          * Az 1. oldalon a nem relevans pontok legyenek rovidek: '1. Nincs hianyossag.', '1. Nem relevans.', '1. Standard allapot fenntartasa.'
           * A 2. oldalon az 5 Miert kerdesek es valaszok legyenek egyenesek, lenyegretorok.
           * A vegeredmeny 100%-ban ugy nezzen ki, mintha kezzel gepelt gyari jegyzokonyv lenne, nulla AI jelleggel!
         """
@@ -285,6 +395,12 @@ def elemez_geminivel(
     stilus_utasitas = (
         "Hivatalos mernoki stilusban, reszletesen fejtsd ki a pontokat."
     )
+
+  kivalasztottak_szoveg = (
+      ", ".join(kivalasztott)
+      if kivalasztott
+      else "Nincs bejelolve (minden sor maradjon ures)"
+  )
 
   prompt = f"""
     Te egy tapasztalt mechatronikai karbantarto szakember vagy a Bridgestone gyarban.
@@ -301,31 +417,31 @@ def elemez_geminivel(
     2. CELZOTT FEJLESZTES / ELVART VEGLEGES MEGOLDAS:
     {fejlesztes}
 
-    KULONLEGES LEVEZETESI KOVETELMENYEK:
-    1. A logikai levezetést (a relevans kriteriumok gyokerokait, az 5 Miert 3 agat es az intezkedeseket) ugy epitsd fel, hogy logikusan es szervesen ebbol a hibabol pontosan a megadott fejlesztesi cel ({fejlesztes}) jojjon ki vegeredmenykent!
-    2. FELELOS ES HATARIDO SZABALY AZ ELLENINTEZKEDES OSZLOPBAN:
-       Az 1. oldal 'Ellenintezkedes' oszlopaban az intezkedes szovege utan kulon sorban MINDIG szerepeljen a 'Felelos: ' es 'Hatarido: ' szoveg, DE NE TOLTSD KI konkret nevvel vagy datummal (pl. 'Felelos: ..........\\nHatarido: ..........'), mert ezt a karbantartas vezetoje utolag hatarozza meg!
+    3. KIFEJTENDO KRITERIUMOK (AZ 1. OLDALHOZ):
+    {kivalasztottak_szoveg}
+
+    SZIGORU SZABALYOK:
+    1. KIZAROLAG a fenti 3. pontban megadott, kivalasztott kriteriumokhoz ({kivalasztottak_szoveg}) keszits ertekelest! A nem kivalasztott kriteriumokhoz semmit ne irj.
+    2. A logikai levezetést ugy epitsd fel, hogy logikusan ebbol a hibabol pontosan a megadott fejlesztesi cel ({fejlesztes}) jojjon ki vegeredmenykent az 5 Miertben es az akciotervben!
+    3. FELELOS ES HATARIDO: Az Ellenintezkedes oszlopban az intezkedes leirasa utan kulon sorban mindig szerepeljen a 'Felelos: ..........' es 'Hatarido: ..........' szoveg, de ne toltsd ki nevvel/datummal!
 
     {stilus_utasitas}
 
     KIZAROLAG ervenyes JSON formatumban valaszolj, az alabbi sema szerint:
     {{
-      "kriteriumok": [
-        {{
-          "nev": "Tisztaság",
-          "kerdes": "(A reszegység (berendezés) elég tiszta, hogy ellenőrizhető legyen és az állapota ne romoljon rohamosan?)",
+      "kriteriumok": {{
+        "Kriterium Neve": {{
           "idealis": "1. ...",
           "aktualis": "1. ...",
           "hianyossag": "1. ...",
           "gyokerok": "1. ...",
-          "ellenintezkedes": "1. ... (ha relevans intezkedes van: leiras + '\\nFelelos: ..........\\nHatarido: ..........', ha nem relevans: '1. Standard CIL tisztitas fenntartasa.')"
-        }},
-        ... (mind a 13 kriterium pontosan ebben a sorrendben: Tisztaság, Meghúzottság, Kenés, Karbantartás, Környezet, Működtetés, Specifikáció, Működés, Telepítés, Összeszerelés, Gyártás, Tervezés, Javítás)
-      ],
+          "ellenintezkedes": "1. ...\\nFelelos: ..........\\nHatarido: .........."
+        }}
+      }},
       "ot_miert_agak": [
         {{
           "ag_nev": "1. AG: MUSZAKI / FIZIKAI AG",
-          "problema": "Problema leiras a mechanikai / hajtas / heveder szempontbol",
+          "problema": "Problema leiras a mechanikai / fizikai szempontbol",
           "miert1": "1. Miert kerdes es valasz",
           "miert2": "2. Miert kerdes es valasz",
           "miert3": "3. Miert kerdes es valasz",
@@ -334,12 +450,12 @@ def elemez_geminivel(
         }},
         {{
           "ag_nev": "2. AG: KARBANTARTASI / VEZERLESI / DIAGNOSZTIKAI AG",
-          "problema": "Problema leiras a lassu hibakereses es elavult vezerles szempontjabol",
+          "problema": "Problema leiras a hibakereses es vezerles szempontjabol",
           "miert1": "1. Miert kerdes es valasz",
           "miert2": "2. Miert kerdes es valasz",
           "miert3": "3. Miert kerdes es valasz",
           "miert4": "4. Miert kerdes es valasz",
-          "miert5_gyokerok": "GYOKEROK: Elavult vezerlorendszer (Segment gateway) es diagnosztika hianya"
+          "miert5_gyokerok": "GYOKEROK: Vezerlesi vagy karbantartasi hianyossag"
         }},
         {{
           "ag_nev": "3. AG: ALKATRESZ-ELLATASI / FEJLESZTESI AG",
@@ -348,12 +464,11 @@ def elemez_geminivel(
           "miert2": "2. Miert kerdes es valasz",
           "miert3": "3. Miert kerdes es valasz",
           "miert4": "4. Miert kerdes es valasz",
-          "miert5_gyokerok": "GYOKEROK: Megszunt alkatresz-tamogatas, multicontrollra torteno fejlesztes szuksegessege"
+          "miert5_gyokerok": "GYOKEROK: Alkatresz-tamogatas megszunese, celzott fejlesztes szuksegessege"
         }}
       ],
       "vegleges_akcioterv": "Rovid, katonas osszefoglalo a hiba javitasarol es a celzott fejlesztesrol, a vegen:\\nFelelos: ..........\\nHatarido: .........."
     }}
-    Minden mezo legyen kozvetlenul az adott jegyzetre es a kivant fejlesztesre szabva, szakmai magyar nyelven!
     """
 
   utolso_hiba = None
@@ -389,7 +504,7 @@ def elemez_geminivel(
 
 # --- DOKUMENTUM GENERALO MOTOR (100% GYARI FORMATUM, CSAK JANOCZKI M!) ---
 def general_hivatalos_docx(
-    gep, hiba, datum, felelos, ai_data, jegyzet, fejlesztes
+    gep, hiba, datum, felelos, ai_data, jegyzet, fejlesztes, kivalasztott
 ):
   doc = docx.Document()
   for section in doc.sections:
@@ -485,18 +600,45 @@ def general_hivatalos_docx(
         p.runs[0].font.size = Pt(7.5)
         p.runs[0].font.bold = True
 
-  kriteriumok = ai_data.get("kriteriumok", [])
-  for r_idx, krit in enumerate(kriteriumok, start=2):
-    if r_idx >= 15:
-      break
-    col_vals = [
-        f"{krit.get('nev', '')}\n{krit.get('kerdes', '')}",
-        krit.get("idealis", "1. Standard állapot."),
-        krit.get("aktualis", "1. Megfelelő."),
-        krit.get("hianyossag", "1. Nincs hiányosság."),
-        krit.get("gyokerok", "1. Nem releváns."),
-        krit.get("ellenintezkedes", "1. Standard állapot fenntartása."),
-    ]
+  # Kritériumok feldolgozása: szótár vagy lista kezelése
+  raw_kriteriumok = ai_data.get("kriteriumok", {})
+  crit_dict = {}
+  if isinstance(raw_kriteriumok, dict):
+    crit_dict = raw_kriteriumok
+  elif isinstance(raw_kriteriumok, list):
+    for item in raw_kriteriumok:
+      if isinstance(item, dict) and "nev" in item:
+        crit_dict[item["nev"]] = item
+
+  # 13 sor pontos feltöltése a gyári sorrendben
+  for r_idx, (krit_nev, krit_kerdes) in enumerate(kriterium_lista, start=2):
+    is_selected = krit_nev in kivalasztott
+    data = crit_dict.get(krit_nev, {})
+
+    # Ha be van pipálva, kifejtjük; ha nincs, ÜRESEN HAGYJUK a cellákat!
+    if is_selected:
+      ell = data.get("ellenintezkedes", "")
+      if ell and "Felelős:" not in ell:
+        ell = f"{ell}\nFelelős: ..........\nHatáridő: .........."
+      col_vals = [
+          f"{krit_nev}\n{krit_kerdes}",
+          data.get("idealis", "1. Standard előírások betartása."),
+          data.get("aktualis", "1. Megfelelő üzemállapot."),
+          data.get("hianyossag", "1. Eltérés tapasztalható."),
+          data.get("gyokerok", "1. Kiváltó ok meghatározva."),
+          (
+              ell
+              if ell
+              else (
+                  "1. Intézkedés rögzítve.\nFelelős: ..........\nHatáridő:"
+                  " .........."
+              )
+          ),
+      ]
+    else:
+      # TELJESEN ÜRES CELLÁK, AHOL NINCS PIPA!
+      col_vals = [f"{krit_nev}\n{krit_kerdes}", "", "", "", "", ""]
+
     for c_i, val in enumerate(col_vals):
       cell = p1_table.cell(r_idx, c_i)
       cell.text = val
@@ -718,6 +860,7 @@ if indit_szaki or indit_std:
             felelos_val,
             jegyzet_szoveg,
             fejlesztesi_cel,
+            kivalasztott_kriteriumok,
             zero_bullshit=is_szaki,
         )
         docx_file = general_hivatalos_docx(
@@ -728,6 +871,7 @@ if indit_szaki or indit_std:
             ai_eredmeny,
             jegyzet_szoveg,
             fejlesztesi_cel,
+            kivalasztott_kriteriumok,
         )
 
         siker_szoveg = (
