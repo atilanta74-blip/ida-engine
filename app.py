@@ -245,7 +245,7 @@ with c_right:
       ),
   )
 
-# --- KRITERIUMOK LISTAJA (A GYARI TABLAZAT ALAPJAN) ---
+# --- KRITERIUMOK LISTAJA (A GYARI TABLAZAT ALAPJAN - PONTOSAN 13 ELEM) ---
 kriterium_lista = [
     (
         "Tisztaság",
@@ -313,7 +313,7 @@ kriterium_lista = [
     ),
 ]
 
-# --- BEPIPÁLHATÓ KRITÉRIUMOK KIVÁLASZTÁSA (BIZTOSAN EGYEDI KULCSOKKAL) ---
+# --- BEPIPÁLHATÓ KRITÉRIUMOK KIVÁLASZTÁSA (MINDEN ELEM PONTOSAN EGYSZER JELENIK MEG) ---
 st.markdown("### ☑️ Kifejtendő Kritériumok kiválasztása (az 1. oldalhoz)")
 st.markdown(
     "<span style='color: #94a3b8; font-size: 13px;'>Pipáld be azokat a"
@@ -322,29 +322,39 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-cb_cols = st.columns(4)
+cb_col1, cb_col2, cb_col3, cb_col4 = st.columns(4)
 kivalasztott_kriteriumok = []
 
-chunks = [
-    kriterium_lista[0:4],
-    kriterium_lista[4:7],
-    kriterium_lista,
-    kriterium_lista,
-]
+# 1. oszlop (1-4. elem: Tisztaság, Meghúzottság, Kenés, Karbantartás)
+with cb_col1:
+  for nev, kerdes in kriterium_lista[0:4]:
+    alap_ertek = True if nev in ["Telepítés"] else False
+    if st.checkbox(nev, value=alap_ertek, key=f"crit_box_{nev}"):
+      kivalasztott_kriteriumok.append(nev)
 
-for col_idx, chunk in enumerate(chunks):
-  with cb_cols[col_idx]:
-    for idx_in_chunk, (nev, kerdes) in enumerate(chunk):
-      unique_idx = sum(len(c) for c in chunks[:col_idx]) + idx_in_chunk
-      alap_ertek = True if nev in ["Telepítés"] else False
-      bejelolve = st.checkbox(
-          nev, value=alap_ertek, key=f"crit_box_{unique_idx}"
-      )
-      if bejelolve:
-        kivalasztott_kriteriumok.append(nev)
+# 2. oszlop (5-7. elem: Környezet, Működtetés, Specifikáció)
+with cb_col2:
+  for nev, kerdes in kriterium_lista[4:7]:
+    alap_ertek = True if nev in ["Telepítés"] else False
+    if st.checkbox(nev, value=alap_ertek, key=f"crit_box_{nev}"):
+      kivalasztott_kriteriumok.append(nev)
+
+# 3. oszlop (8-10. elem: Működés, Telepítés, Összeszerelés)
+with cb_col3:
+  for nev, kerdes in kriterium_lista:
+    alap_ertek = True if nev in ["Telepítés"] else False
+    if st.checkbox(nev, value=alap_ertek, key=f"crit_box_{nev}"):
+      kivalasztott_kriteriumok.append(nev)
+
+# 4. oszlop (11-13. elem: Gyártás, Tervezés, Javítás)
+with cb_col4:
+  for nev, kerdes in kriterium_lista:
+    alap_ertek = True if nev in ["Telepítés"] else False
+    if st.checkbox(nev, value=alap_ertek, key=f"crit_box_{nev}"):
+      kivalasztott_kriteriumok.append(nev)
 
 
-# --- INTELLIGENS FLASH MOTOR (A FELHASZNÁLÓI KÉPEK LOGIKÁJÁRA ILLESZTVE) ---
+# --- INTELLIGENS FLASH MOTOR (A CSATOLT BRIDGESTONE ÜZEMI LOGIKÁRA HANGOLVA) ---
 def elemez_geminivel(
     api_key,
     gep,
@@ -394,9 +404,7 @@ def elemez_geminivel(
         - Nem kell kötelezően 5 mélységig húzni az 5 Miértet! Ha 2 vagy 3 lépésből megvan a valós gyári ok (telepítési állapot, termékméret, beszerezhetőség), akkor a további miérteket üresen kell hagyni!
         """
   else:
-    stilus_utasitas = (
-        "Hivatalos mérnöki stílusban, pontos levezetéssel."
-    )
+    stilus_utasitas = "Hivatalos mérnöki stílusban, pontos levezetéssel."
 
   kivalasztottak_szoveg = (
       ", ".join(kivalasztott) if kivalasztott else "Nincs bejelölve"
@@ -432,7 +440,7 @@ def elemez_geminivel(
 
     {stilus_utasitas}
 
-    KIZÁRÓLAG érvényes JSON formátumban válaszolj, az alábbi formátumban:
+    KIZÁRÓLAG érvényes JSON formatumban válaszolj, az alábbi formátumban:
     {{
       "kriteriumok": {{
         "Kritérium Neve": {{
