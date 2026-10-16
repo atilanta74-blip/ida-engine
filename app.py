@@ -328,15 +328,15 @@ kivalasztott_kriteriumok = []
 chunks = [
     kriterium_lista[0:4],
     kriterium_lista[4:7],
-    kriterium_lista[7:10],
-    kriterium_lista[10:13],
+    kriterium_lista,
+    kriterium_lista,
 ]
 
 for col_idx, chunk in enumerate(chunks):
   with cb_cols[col_idx]:
     for idx_in_chunk, (nev, kerdes) in enumerate(chunk):
       unique_idx = sum(len(c) for c in chunks[:col_idx]) + idx_in_chunk
-      alap_ertek = True if nev in ["Karbantartás", "Javítás"] else False
+      alap_ertek = True if nev in ["Telepítés"] else False
       bejelolve = st.checkbox(
           nev, value=alap_ertek, key=f"crit_box_{unique_idx}"
       )
@@ -344,7 +344,7 @@ for col_idx, chunk in enumerate(chunks):
         kivalasztott_kriteriumok.append(nev)
 
 
-# --- INTELLIGENS FLASH MOTOR ---
+# --- INTELLIGENS FLASH MOTOR (A FELHASZNÁLÓI KÉPEK LOGIKÁJÁRA ILLESZTVE) ---
 def elemez_geminivel(
     api_key,
     gep,
@@ -387,90 +387,89 @@ def elemez_geminivel(
 
   if zero_bullshit:
     stilus_utasitas = """
-        SZIGORU STILUSKOVETELMENY - ZERO-BULLSHIT / GYARI SZAKI MOD:
-        - TILOS BARMIFELE 'AI-IZU' RIZSA, corporate bullshit, kormondatok vagy felesleges szovegeles!
-        - TILOSAK az ilyen szavak: 'holisztikus', 'szinergia', 'proaktiv paradigma', 'optimalizacio', 'folyamatos fejlodesi kultura', 'human tenyezo'.
-        - Ugy fogalmazz, mintha egy szukszavu, kokemeny gyari gepesztechnikus es karbantartas-vezeto irta volna a jegyzokonyvet:
-          * Rovid, lenyegretoro, pontos gepeszeti tomondatok.
-          * Pontos muszaki adatok a jegyzetbol (heveder kopas/csere, CV tavolsagallitas, elavult Segment gateway, alkatreszhiany, multicontroll modernizalas).
-          * A 2. oldalon az 5 Miert kerdesek es valaszok legyenek egyenesek, lenyegretorok.
-          * A vegeredmeny 100%-ban ugy nezzen ki, mintha kezzel gepelt gyari jegyzokonyv lenne, nulla AI jelleggel!
+        SZIGORÚ STÍLUSKÖVETELMÉNY - ZERO-BULLSHIT / GYÁRI SZAKI MÓD:
+        - TILOS BÁRMIFÉLE 'AI-ÍZŰ' RIZSA, körmondat vagy corporate bullshit!
+        - Tényszerű, száraz, lényegretörő gyári megfogalmazás:
+          * Pl.: 'túl nagy cv távolság miatt cv becsípődött', 'így telepítették le a gépet', 'változott a termékpaletta', 'gazdaságosabb volt ezt megvenni telepítéskor'.
+        - Nem kell kötelezően 5 mélységig húzni az 5 Miértet! Ha 2 vagy 3 lépésből megvan a valós gyári ok (telepítési állapot, termékméret, beszerezhetőség), akkor a további miérteket üresen kell hagyni!
         """
   else:
     stilus_utasitas = (
-        "Hivatalos mernoki stilusban, reszletesen fejtsd ki a pontokat."
+        "Hivatalos mérnöki stílusban, pontos levezetéssel."
     )
 
   kivalasztottak_szoveg = (
-      ", ".join(kivalasztott) if kivalasztott else "Nincs bejelolve"
+      ", ".join(kivalasztott) if kivalasztott else "Nincs bejelölve"
   )
 
   prompt = f"""
-    Te egy tapasztalt mechatronikai karbantarto szakember vagy a Bridgestone gyarban.
-    Elemezd az alabbi bemeneteket a gyari BSHM B-ME IDA sablon szerint:
+    Te a Bridgestone Tatabánya tapasztalt mechatronikai karbantartási szakembere vagy.
+    Az alábbi bemenetek alapján készíts hivatalos gyári BSHM B-ME IDA elemzést a csatolt üzemi logika szerint:
 
-    Berendezes: {gep}
-    Hiba megnevezese: {hiba}
-    Datum: {datum}
-    Felelos: {felelos}
+    Gép: {gep}
+    Hiba: {hiba}
+    Dátum: {datum}
+    Felelős: {felelos}
 
-    1. TENYLEGESEN MEGTORTENT HIBA / ESEMENY:
+    1. MEGTÖRTÉNT HIBA / ESEMÉNY:
     {jegyzet}
 
-    2. CELZOTT FEJLESZTES / ELVART VEGLEGES MEGOLDAS:
+    2. CÉLZOTT FEJLESZTÉS / ELVÁRT VÉGLEGES INTÉZKEDÉS:
     {fejlesztes}
 
-    3. KIFEJTENDO KRITERIUMOK (AZ 1. OLDALHOZ):
+    3. BEJELÖLT KRITÉRIUMOK (AZ 1. OLDALHOZ):
     {kivalasztottak_szoveg}
 
-    SZIGORU SZABALYOK:
-    1. KIZAROLAG a fenti 3. pontban megadott, kivalasztott kriteriumokhoz ({kivalasztottak_szoveg}) keszits ertekelest!
-    2. A logikai levezetést ugy epitsd fel, hogy logikusan ebbol a hibabol pontosan a megadott fejlesztesi cel ({fejlesztes}) jojjon ki vegeredmenykent az 5 Miertben es az akciotervben!
-    3. FELELOS ES HATARIDO: Az Ellenintezkedes oszlopban az intezkedes leirasa utan kulon sorban mindig szerepeljen a 'Felelos: ..........' es 'Hatarido: ..........' szoveg, de ne toltsd ki nevvel/datummal!
+    KÖTELEZŐ GYÁRI SZABÁLYOK:
+    1. KÖZVETLEN KAPCSOLAT AZ 1. OLDAL 'HIÁNYOSSÁG' ÉS A 2. OLDAL 'PROBLÉMA MEGHATÁROZÁSA' KÖZÖTT:
+       - Az 1. oldalon a bejelölt kritériumnál számozd meg a konkrét HIÁNYOSSÁG pontokat (pl. 1. fizikai/távolsági/mechanikai hiba, 2. vezérlési/alkatrész/elavultsági hiba).
+       - A 2. oldalon az 5 Miért elemzés 'PROBLÉMA MEGHATÁROZÁSA' fejlécébe PONTOSAN ezek a hiányosság-mondatok kerüljenek felbontásra!
+    2. AZ 5 MIÉRT LEVEZETÉSE:
+       - Az ágakban a 'miert1', 'miert2', 'miert3' válaszok rövidek, lényegretörőek legyenek (pl. 'cv-k között túl nagy a távolság' -> 'így telepítették le a gépet', vagy 'eddig nem gyártott méretek' -> 'változott a termékpaletta', vagy 'nem tölthető program a modulra' -> 'obszolét rendszer' -> 'gazdaságosabb volt ezt megvenni').
+       - Ha 2-3 lépésből elérjük a gyökérokot, a 'miert4' és 'miert5' legyen üres string ("")!
+       - Maximum 3 ágat tölts ki, a 4. és 5. ág legyen üres (problema: "", miértek: "")!
+    3. FELELŐS ÉS HATÁRIDŐ: Az Ellenintézkedés végén szerepeljen a 'Felelős: ..........' és 'Határidő: ..........' sablonszöveg!
 
     {stilus_utasitas}
 
-    KIZAROLAG ervenyes JSON formatumban valaszolj, az alabbi sema szerint:
+    KIZÁRÓLAG érvényes JSON formátumban válaszolj, az alábbi formátumban:
     {{
       "kriteriumok": {{
-        "Kriterium Neve": {{
-          "idealis": "1. ...",
-          "aktualis": "1. ...",
-          "hianyossag": "1. ...",
-          "gyokerok": "1. ...",
-          "ellenintezkedes": "1. ...\\nFelelos: ..........\\nHatarido: .........."
+        "Kritérium Neve": {{
+          "idealis": "1. ...\\n2. ...",
+          "aktualis": "1. ...\\n2. ...",
+          "hianyossag": "1. ...\\n2. ...",
+          "gyokerok": "1. ...\\n2. ...",
+          "ellenintezkedes": "1. ...\\n2. ...\\nFelelős: ..........\\nHatáridő: .........."
         }}
       }},
       "ot_miert_agak": [
         {{
-          "ag_nev": "1. AG: MUSZAKI / FIZIKAI AG",
-          "problema": "Problema leiras a mechanikai / fizikai szempontbol",
-          "miert1": "1. Miert kerdes es valasz",
-          "miert2": "2. Miert kerdes es valasz",
-          "miert3": "3. Miert kerdes es valasz",
-          "miert4": "4. Miert kerdes es valasz",
-          "miert5_gyokerok": "GYOKEROK: A fizikai/mechanikai ok kozvetlen megnevezese"
+          "problema": "1. Hiányosság szövege szó szerint",
+          "miert1": "1. Miért kérdésre válasz",
+          "miert2": "2. Miért kérdésre válasz",
+          "miert3": "3. Miért (ha szükséges, egyébként üres)",
+          "miert4": "",
+          "miert5": ""
         }},
         {{
-          "ag_nev": "2. AG: KARBANTARTASI / VEZERLESI / DIAGNOSZTIKAI AG",
-          "problema": "Problema leiras a hibakereses es vezerles szempontjabol",
-          "miert1": "1. Miert kerdes es valasz",
-          "miert2": "2. Miert kerdes es valasz",
-          "miert3": "3. Miert kerdes es valasz",
-          "miert4": "4. Miert kerdes es valasz",
-          "miert5_gyokerok": "GYOKEROK: Elavult vezerlorendszer (Segment gateway) es diagnosztika hianya"
+          "problema": "1. Hiányosság másik szempontja (pl. termék/üzemeltetés)",
+          "miert1": "...",
+          "miert2": "...",
+          "miert3": "",
+          "miert4": "",
+          "miert5": ""
         }},
         {{
-          "ag_nev": "3. AG: ALKATRESZ-ELLATASI / FEJLESZTESI AG",
-          "problema": "Problema leiras az alkatresz-elerhetoseg es modernizalas szempontjabol",
-          "miert1": "1. Miert kerdes es valasz",
-          "miert2": "2. Miert kerdes es valasz",
-          "miert3": "3. Miert kerdes es valasz",
-          "miert4": "4. Miert kerdes es valasz",
-          "miert5_gyokerok": "GYOKEROK: Megszunt alkatresz-tamogatas, multicontrollra torteno fejlesztes szuksegessege"
+          "problema": "2. Hiányosság szövege szó szerint (pl. vezérlő/alkatrész)",
+          "miert1": "...",
+          "miert2": "...",
+          "miert3": "...",
+          "miert4": "",
+          "miert5": ""
         }}
       ],
-      "vegleges_akcioterv": "Rovid, katonas osszefoglalo a hiba javitasarol es a celzott fejlesztesrol, a vegen:\\nFelelos: ..........\\nHatarido: .........."
+      "vegleges_akcioterv": "Tömör akcioterv összegzés a célzott fejlesztéssel a végén:\\nFelelős: ..........\\nHatáridő: .........."
     }}
     """
 
@@ -616,7 +615,6 @@ def general_hivatalos_docx(
     is_selected = krit_nev in kivalasztott
     data = crit_dict.get(krit_nev, {})
 
-    # Ha be van pipálva, kifejtjük; ha nincs, BEÍRJUK: "Nem Releváns"!
     if is_selected:
       ell = data.get("ellenintezkedes", "")
       if ell and "Felelős:" not in ell:
@@ -637,7 +635,6 @@ def general_hivatalos_docx(
           ),
       ]
     else:
-      # A NEM BEPIPÁLT SOROKBA BEÍRJUK: "Nem Releváns"!
       col_vals = [
           f"{krit_nev}\n{krit_kerdes}",
           "Nem Releváns",
@@ -695,10 +692,7 @@ def general_hivatalos_docx(
       [agak[i].get("miert2", "") if i < len(agak) else "" for i in range(5)],
       [agak[i].get("miert3", "") if i < len(agak) else "" for i in range(5)],
       [agak[i].get("miert4", "") if i < len(agak) else "" for i in range(5)],
-      [
-          agak[i].get("miert5_gyokerok", "") if i < len(agak) else ""
-          for i in range(5)
-      ],
+      [agak[i].get("miert5", "") if i < len(agak) else "" for i in range(5)],
   ]
 
   for c_i in range(5):
@@ -725,7 +719,7 @@ def general_hivatalos_docx(
     d_row = 3 + step * 2
     for c_i in range(5):
       c_h = p2_table.cell(h_row, c_i)
-      c_h.text = "( MIÉRT?"
+      c_h.text = "↓ MIÉRT?"
       set_cell_bg(c_h, "F2F2F2")
       set_cell_pad(c_h, 25, 25, 40, 40)
       set_cell_border(c_h, "6")
@@ -741,8 +735,6 @@ def general_hivatalos_docx(
       if c_d.paragraphs[0].runs:
         c_d.paragraphs[0].runs[0].font.name = "Calibri"
         c_d.paragraphs[0].runs[0].font.size = Pt(7.5)
-        if step == 4 and c_i < len(agak):
-          c_d.paragraphs[0].runs[0].font.bold = True
 
   for row in p2_table.rows:
     for c_i in range(5):
@@ -883,8 +875,8 @@ if indit_szaki or indit_std:
         )
 
         siker_szoveg = (
-            "✅ Kész! Az elemzés lényegretörő, valódi gyári stílusban készült"
-            " el (nulla AI-rizsa)!"
+            "✅ Kész! Az elemzés a fotózott mintád szerint, gyári logikával"
+            " készült el!"
             if is_szaki
             else "✅ Az elemzés sikeresen elkészült!"
         )
