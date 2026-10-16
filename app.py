@@ -314,7 +314,7 @@ kriterium_lista = [
     ),
 ]
 
-# --- BEPIPÁLHATÓ KRITÉRIUMOK KIVÁLASZTÁSA (PONTOSAN 13 EGYEDI ELEM A 4 OSZLOPBAN) ---
+# --- BEPIPÁLHATÓ KRITÉRIUMOK KIVÁLASZTÁSA (MIND A 13 ALAPÉRTELMEZETTEN ÜRESEN INDUL) ---
 st.markdown("### ☑️ Kifejtendő Kritériumok kiválasztása (az 1. oldalhoz)")
 st.markdown(
     "<span style='color: #94a3b8; font-size: 13px;'>Pipáld be azokat a"
@@ -344,7 +344,7 @@ with cb_col2:
 
 with cb_col3:
   cb_mukodes = st.checkbox("Működés", value=False, key="chk_mukodes")
-  cb_telepites = st.checkbox("Telepítés", value=True, key="chk_telepites")
+  cb_telepites = st.checkbox("Telepítés", value=False, key="chk_telepites")
   cb_osszeszereles = st.checkbox(
       "Összeszerelés", value=False, key="chk_osszeszereles"
   )
